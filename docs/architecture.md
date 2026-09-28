@@ -395,3 +395,30 @@ Her katman bağımsız test edilebilir olmalıdır.
 7. **Uçuş güvenliği AI modeline bırakılmaz.**
 8. **Her mesaj ve servis sürümlenebilir ve test edilebilir olmalıdır.**
 9. **Donanım ve yazılım kararları bench testleriyle doğrulanmadan kesin kabul edilmez.**
+
+## 12. Uygulanan repository katmanları
+
+Bu mimari artık yalnızca doküman değildir; repository içinde çalışan başlangıç iskeleti olarak uygulanmıştır:
+
+- `mobile_app/`: Flutter/Dart Android + iOS uygulama kaynağı.
+- `bridge_service/`: Go HTTP servis başlangıcı; WebSocket katmanı bu sözleşme üzerine eklenir.
+- `ai_core/`: C++20/CMake Engine ve sensör özelliklerinden yapılandırılmış sonuç üretimi.
+- `firmware/`: PlatformIO + Deneyap Kart V2/ESP32 Arduino hedefi ve sensör bağımlılıkları.
+- `models/`: Gemma 3 1B Q5_K_M GGUF runtime sözleşmesi.
+- `site/`: yalnızca GitHub Pages proje sitesi.
+
+## 13. Sensör kütüphaneleri ve sürücü sınırı
+
+`firmware/platformio.ini` başlangıç bağımlılıklarını içerir:
+
+- **Thermal:** Adafruit MLX90640 library — MLX90640 sınıfı termal modül için.
+- **LiDAR/ToF:** SparkFun VL53L1X library — VL53L1X sınıfı mesafe sensörü için.
+- **Acoustic:** INMP441 sınıfı mikrofon için ESP32 I2S çevrebirimi; ayrı sensör kütüphanesi gerektirmez.
+- **Seismic:** geofon + harici düşük gürültülü analog ön uç + ESP32 ADC.
+- **UWB:** DW3000 sınıfı modül için sürücü arayüzü ayrılmıştır; kesin modül fiziksel olarak doğrulanmadan rastgele bir kütüphane kilitlenmez.
+
+Bu nedenle yazılım katmanı sensör sınıfını hazırlar; kesin parça, pinout ve elektriksel parametreler BOM doğrulamasından sonra sabitlenir.
+
+## 14. GitHub dil yapısı
+
+GitHub'da `site/` HTML'i ürün uygulamasından ayrı tutulur ve `.gitattributes` ile vendored olarak işaretlenmiştir. Böylece repository'nin ana geliştirme dilleri gerçek sistemle uyumlu şekilde C++, Go, Dart ve firmware C/C++ olarak görünür.
