@@ -1,18 +1,98 @@
 # ARES — Deneyap Osmaniye
-Drone destekli enkaz arama ve kurtarma araştırma/prototip projesi.
 
-Bu depo doğrulanmış donanım kararlarını, firmware'i, haberleşme protokolünü, testleri ve proje sitesini birlikte tutar. ARES prototiptir; gerçek operasyonlarda profesyonel ekiplerin ve sertifikalı ekipmanların yerine geçmez.
+Drone destekli enkaz arama/kurtarma araştırma ve prototip sistemi.
 
-## Başlangıç
-- [Mimari ve yol haritası](docs/architecture.md)
-- [Araştırma/karar günlüğü](docs/research/decision-log.md)
-- [UART eş-düğüm protokolü](docs/protocol/uart-peer.md)
+## Gerçek yazılım mimarisi
+
+```text
+Android / iOS
+Flutter + Dart
+      │ HTTP / WebSocket
+      ▼
+Go Bridge Service
+      │ local IPC
+      ├──────────────► Raw telemetry / logging
+      ▼
+C++ AI Core
+Validation → Filtering → Sensor Fusion → Gemma 3 1B Q5_K_M
+      │ structured result
+      ▼
+Go Bridge → Flutter UI
+
+Deneyap Kart V2 / ESP32 firmware
+      │ UART + CRC16
+      ├── Thermal / MLX90640-class
+      ├── UWB / DW3000-class
+      ├── Acoustic / INMP441-class I2S
+      ├── Seismic / geophone + AFE
+      └── LiDAR / VL53L1X-class
+```
+
+**Web sitesi bu sistemin parçası değildir.** `site/` yalnızca GitHub Pages proje tanıtım sayfasıdır. Asıl ürün Android/iOS Flutter uygulamasıdır.
+
+## Repository
+
+- `mobile_app/` — Flutter/Dart Android + iOS uygulaması
+- `bridge_service/` — Go HTTP/WebSocket servis katmanı
+- `ai_core/` — C++/CMake sensör füzyonu ve AI katmanı
+- `firmware/` — Deneyap Kart V2 / ESP32 firmware
+- `models/` — yerel Gemma model metadata/configuration
+- `docs/` — mimari, protokol, donanım ve test dokümanları
+- `site/` — yalnızca proje web sitesi
+
+## Sensör yazılımı
+
+Başlangıç PlatformIO bağımlılıkları `firmware/platformio.ini` içinde tutulur:
+
+- Adafruit MLX90640 — termal sensör sınıfı
+- SparkFun VL53L1X — LiDAR/ToF sınıfı
+- ESP32 I2S — INMP441 sınıfı akustik giriş için yerleşik çevrebirim
+- ADC + harici düşük gürültülü AFE — geofon/sismik giriş
+- DW3000 sınıfı UWB — kesin modül seçimi sonrası doğrulanmış sürücü
+
+Kesin sensör parçası BOM doğrulamasından sonra kilitlenir; pin ve elektriksel değerler tahmin edilmez.
+
+## AI sınırı
+
+AI Core ham yüksek frekanslı sensör akışını doğrudan modele vermez. Önce deterministik doğrulama, filtreleme ve sensör füzyonu yapılır. Gemma yapılandırılmış özellikleri yorumlar ve Go Bridge'e makine tarafından işlenebilir sonuç döndürür.
+
+AI Core uçuş kontrolcüsü değildir; motor PWM, stabilizasyon ve failsafe kararları AI modeline bırakılmaz.
+
+## Geliştirme
+
+### Mobile
+
+`mobile_app/` içinde Flutter kullanılır ve hedef platformlar yalnızca Android/iOS'tur. Flutter SDK ile platform projeleri oluşturulduktan sonra `flutter pub get` ve `flutter run` kullanılabilir.
+
+### Bridge
+
+```bash
+cd bridge_service
+go run .
+```
+
+Health: `http://127.0.0.1:8080/health`
+
+### C++ Core
+
+```bash
+cmake -S ai_core -B ai_core/build
+cmake --build ai_core/build
+```
+
+Gemma/llama.cpp gerçek inference adapter'ı model dosyası ve native runtime doğrulamasından sonra bağlanır; binary model dosyaları repoya gömülmez.
+
+### Firmware
+
+PlatformIO ile `firmware/` hedefi derlenir. Kesin pinout, sensör modülleri fiziksel olarak doğrulanmadan firmware'e sabitlenmez.
+
+## Dokümantasyon
+
+- [Mimari](docs/architecture.md)
 - [Donanım envanteri](docs/hardware/bom.md)
-- [Test ve güvenlik planı](docs/validation/test-plan.md)
-- [Proje sitesi](site/index.html)
+- [UART protokolü](docs/protocol/uart-peer.md)
+- [Test planı](docs/validation/test-plan.md)
 
-## Mevcut durum
-İki Deneyap Kart V2 ve UART tabanlı eşit düğümlü haberleşme hedefleniyor. Sensörler ve güç bileşenleri doğrulama aşamasında; kesin parça seçimi üretici dokümanları, elektriksel uyumluluk, ağırlık/güç bütçesi ve test sonuçlarıyla yapılacak.
+## Durum
 
-## Site
-GitHub Actions Pages iş akışı eklendi. Depo private olduğundan Pages erişilebilirliği GitHub planı/ayarlarına bağlıdır; Settings → Pages bölümünden GitHub Actions kaynağını etkinleştirin.
+ARES prototiptir. Sensör sonuçları operatör destek verisidir ve gerçek arama/kurtarma operasyonlarında sertifikalı sistemlerin yerine geçmez.
