@@ -1,0 +1,92 @@
+name: ARES CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cpp:
+    name: C++ AI Core
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - name: Configure
+        run: cmake -S ai_core -B ai_core/build
+      - name: Build
+        run: cmake --build ai_core/build --parallel
+
+  go:
+    name: Go Bridge
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - name: Format check
+        working-directory: bridge_service
+        run: test -z "$(gofmt -l .)"
+      - name: Test
+        working-directory: bridge_service
+        run: go test ./...
+
+  flutter:
+    name: Flutter Mobile
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - name: Dependencies
+        working-directory: mobile_app
+        run: flutter pub get
+      - name: Analyze
+        working-directory: mobile_app
+        run: flutter analyze
+      - name: Test
+        working-directory: mobile_app
+        run: flutter test
+
+  firmware:
+    name: Deneyap Firmware
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: platformio/action@v2
+      - name: Build
+        working-directory: firmware
+        run: pio run
+
+  website:
+    name: Website validation
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - name: Validate site
+        run: test -f site/index.html && grep -q '<html' site/index.html
+
+  summary:
+    name: ARES CI summary
+    if: always()
+    needs: [cpp, go, flutter, firmware, website]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Result
+        run: |
+          echo "C++: ${{ needs.cpp.result }}"
+          echo "Go: ${{ needs.go.result }}"
+          echo "Flutter: ${{ needs.flutter.result }}"
+          echo "Firmware: ${{ needs.firmware.result }}"
+          echo "Website: ${{ needs.website.result }}"
+          test "${{ needs.cpp.result }}" = success
+          test "${{ needs.go.result }}" = success
+          test "${{ needs.flutter.result }}" = success
+          test "${{ needs.firmware.result }}" = success
+          test "${{ needs.website.result }}" = success
