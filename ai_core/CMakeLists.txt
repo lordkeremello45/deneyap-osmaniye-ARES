@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.20)
+project(ares_ai_core LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+add_executable(ares_ai_core src/main.cpp src/engine.cpp)
+target_include_directories(ares_ai_core PRIVATE include)
