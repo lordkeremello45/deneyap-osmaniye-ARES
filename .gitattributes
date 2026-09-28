@@ -1,0 +1,2 @@
+# Website is a deployable artifact, not the application stack.
+site/** linguist-vendored
