@@ -28,6 +28,10 @@ Deneyap Kart V2 / ESP32 firmware
       └── LiDAR / VL53L1X-class
 ```
 
+## Proje sitesi
+
+🌐 [ARES Web Sitesi](https://lordkeremello45.github.io/deneyap-osmaniye-ARES/)
+
 **Web sitesi bu sistemin parçası değildir.** `site/` yalnızca GitHub Pages proje tanıtım sayfasıdır. Asıl ürün Android/iOS Flutter uygulamasıdır.
 
 ## Repository
