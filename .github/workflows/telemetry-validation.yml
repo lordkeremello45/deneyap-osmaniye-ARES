@@ -1,0 +1,54 @@
+name: ARES Telemetry Validation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "drone_telemetry/**"
+      - "ai_core/**"
+      - ".github/workflows/telemetry-validation.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "drone_telemetry/**"
+      - "ai_core/**"
+      - ".github/workflows/telemetry-validation.yml"
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  telemetry:
+    name: Drone telemetry C++ validation
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Configure telemetry validation
+        run: |
+          cmake -S drone_telemetry -B drone_telemetry/build
+
+      - name: Build telemetry validation
+        run: cmake --build drone_telemetry/build --parallel
+
+      - name: Run telemetry tests
+        run: ctest --test-dir drone_telemetry/build --output-on-failure
+
+  structure:
+    name: Verify ARES architecture
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - name: Check required architecture directories
+        run: |
+          test -d drone_telemetry
+          test -d ai_core
+          test -d bridge
+          test -d controller/android
+          test -d firmware
+          test -d drone
+          test -d storage
+          test -d website/astro
