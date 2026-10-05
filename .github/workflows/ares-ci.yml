@@ -11,15 +11,22 @@ permissions:
   contents: read
 
 jobs:
+  telemetry:
+    name: Drone Telemetry
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - run: cmake -S drone_telemetry -B drone_telemetry/build
+      - run: cmake --build drone_telemetry/build --parallel
+      - run: ctest --test-dir drone_telemetry/build --output-on-failure
+
   cpp:
     name: C++ AI Core
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
-      - name: Configure
-        run: cmake -S ai_core -B ai_core/build
-      - name: Build
-        run: cmake --build ai_core/build --parallel
+      - run: cmake -S ai_core -B ai_core/build
+      - run: cmake --build ai_core/build --parallel
 
   go:
     name: Go Bridge
@@ -37,7 +44,7 @@ jobs:
         run: go test ./...
 
   flutter:
-    name: Flutter Mobile
+    name: Android Controller
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
@@ -64,29 +71,31 @@ jobs:
         working-directory: firmware
         run: pio run
 
-  website:
-    name: Website validation
+  architecture:
+    name: Architecture Guard
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
-      - name: Validate site
-        run: test -f site/index.html && grep -q '<html' site/index.html
+      - run: |
+          test -d drone_telemetry
+          test -d ai_core
+          test -d bridge
+          test -d controller/android
+          test -d drone
+          test -d firmware
+          test -d storage
+          test -d website/astro
 
   summary:
     name: ARES CI summary
     if: always()
-    needs: [cpp, go, flutter, firmware, website]
+    needs: [telemetry, cpp, go, flutter, firmware, architecture]
     runs-on: ubuntu-24.04
     steps:
-      - name: Result
-        run: |
-          echo "C++: ${{ needs.cpp.result }}"
-          echo "Go: ${{ needs.go.result }}"
-          echo "Flutter: ${{ needs.flutter.result }}"
-          echo "Firmware: ${{ needs.firmware.result }}"
-          echo "Website: ${{ needs.website.result }}"
+      - run: |
+          test "${{ needs.telemetry.result }}" = success
           test "${{ needs.cpp.result }}" = success
           test "${{ needs.go.result }}" = success
           test "${{ needs.flutter.result }}" = success
           test "${{ needs.firmware.result }}" = success
-          test "${{ needs.website.result }}" = success
+          test "${{ needs.architecture.result }}" = success
