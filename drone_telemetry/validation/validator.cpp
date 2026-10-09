@@ -35,7 +35,8 @@ ValidationStatus Validator::validate(const TelemetryPacket& packet,
       packet.seismic.rms < 0.0F || packet.seismic.peak < 0.0F ||
       packet.acoustic.peak < packet.acoustic.rms ||
       packet.seismic.peak < packet.seismic.rms ||
-      packet.uwb_distance_m < -1.0F || packet.lidar_distance_m < -1.0F) {
+      (packet.uwb_distance_m < 0.0F && packet.uwb_distance_m != -1.0F) ||
+      (packet.lidar_distance_m < 0.0F && packet.lidar_distance_m != -1.0F)) {
     return ValidationStatus::OutOfRange;
   }
   return ValidationStatus::Valid;
