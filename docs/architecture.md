@@ -44,11 +44,17 @@ validated telemetry → time alignment/windowing → feature extraction → dete
 
 Model girişine bütün ham yüksek hızlı akışları kontrolsüz şekilde yığmak yerine doğrulanmış özellikler, sensör kalite bayrakları ve gerekiyorsa seçilmiş görüntü/akustik segmentleri verilir. Gemma kanıtları yorumlayan katmandır; deterministik kontrollerin ve ham kayıtların yerini almaz.
 
+### Windows kurulum sihirbazı ve Bluetooth ile ilk kayıt
+
+Hedef kullanıcı akışı: Windows kurulum sihirbazı açılır → operatör Bluetooth ile ARES cihazını keşfeder ve doğru cihazı seçer → fiziksel varlık/cihaz kimliği doğrulanır → Windows cihaza özel MQTT kimliğini üretip broker ACL'sini ayarlar → kimlik bilgisi doğrulanmış, şifreli provisioning oturumunda karta aktarılır → cihaz TLS ile MQTT'ye bağlanır → broker yetkilendirme testi geçince sihirbaz tamamlanır. Kullanıcının MQTT anahtarını görmesi, kopyalaması veya elle yazması gerekmez.
+
+**Donanım kapısı:** DENEYAP Kart V2'nin kesin MCU/radyo varyantı ve Bluetooth desteği doğrulanmadan BLE uygulaması başlatılmaz. ESP32 ailesinin her üyesinde Bluetooth bulunmaz; örneğin ESP32-S2 Bluetooth desteklemez. Kartta BLE yoksa uyumlu harici BLE modülü veya doğrulanmış başka bir güvenli ilk kayıt taşıması gerekir. Cihaz adı ya da altı haneli PIN tek başına cihaz kimliğini kanıtlamaz. Fiziksel eşleştirme penceresi, doğrulanmış Bluetooth Secure Connections/association yöntemi ve replay'e karşı korunan challenge-response gerekir. Ayrıntılar: [Bluetooth-first provisioning](security/bluetooth-first-setup.md).
+
 ### MQTT, pairing and credential lifecycle
 
 Windows Ground Station yerel Mosquitto broker'ını yönetir. Broker yoksa uygulama görünür/onaylı bir kurulum akışı başlatır, sürümü ve servis sağlığını doğrular, güvenli yapılandırma uygular ve yalnızca tüm kontroller geçerse hazır duruma geçer. Mevcut Mosquitto yapılandırması izinsiz ezilmez.
 
-Telefon eşleştirmesinde Windows'ta gösterilen altı haneli tek kullanımlık PIN, TLS ile korunan pairing endpoint'inde doğrulanır. PIN 120 saniyede sona erer, bir kez kullanılabilir ve hatalı denemeler sınırlandırılır. Başarılı eşleştirmeden sonra Windows cihaza özel, yüksek entropili MQTT kimlik bilgisi üretir ve sadece gerekli topic'lere ACL tanımlar. PIN, MQTT anahtarı değildir. Her telefon/ESP32 düğümü ayrı kimlik alır; ortak anahtar kullanılmaz. Ayrıntılı güvenlik şartları: [MQTT pairing specification](security/mqtt-pairing.md).
+Telefon eşleştirmesinde Windows'ta gösterilen altı haneli tek kullanımlık PIN, TLS ile korunan pairing endpoint'inde doğrulanır. PIN 120 saniyede sona erer, bir kez kullanılabilir ve hatalı denemeler sınırlandırılır. Başarılı eşleştirmeden sonra Windows cihaza özel, yüksek entropili MQTT kimlik bilgisi üretir ve sadece gerekli topic'lere ACL tanımlar. PIN, MQTT anahtarı değildir. Her telefon/ESP32 düğümü ayrı kimlik alır; ortak anahtar kullanılmaz. ESP32'ye kimlik aktarımı yalnızca doğrulanmış ve şifreli ilk kayıt oturumunda yapılır. Ayrıntılı güvenlik şartları: [MQTT pairing specification](security/mqtt-pairing.md).
 
 SPARK anahtar kasası/şifreleme sistemi değildir. SPARK ile bazı durum makinesi ve komut kabul invariants'ları biçimsel olarak ifade edilebilir; gizli anahtarlar ise doğrulanmış TLS, işletim sistemi güvenli depolaması ve platformun desteklediği korumalarla yönetilmelidir. Deneyap kartında secure boot/flash encryption ve güvenli ilk kayıt mekanizması doğrulanana kadar fiziksel anahtar koruması iddia edilmez.
 
@@ -88,14 +94,15 @@ Bu şema örnektir; firmware'de uygulanmış protokol olduğu iddia edilmez. Eks
 
 ## Geliştirme sırası
 
-1. Pinout, güç ve sensör arayüzlerini doğrula.
+1. Kart revizyonu, MCU, BLE/radyo desteği, pinout, güç ve sensör arayüzlerini doğrula.
 2. Firmware'de sensör edinimi, durum bayrakları ve timestamp testleri.
 3. UART/local link paket formatı, CRC/sequence ve hata enjeksiyonu.
 4. SD raw logger ve kayıt tekrar oynatma.
 5. Windows telemetry ingest, deterministic validation/fusion ve Gemma host benchmark'ı.
 6. MQTT broker lifecycle, TLS, ACL, PIN pairing ve credential revoke/rotate.
-7. Telefon uygulaması ve cihaz bazlı provisioning.
-8. Entegre bench testleri, ağ kesintisi/failsafe testleri ve kontrollü saha doğrulaması.
+7. Bluetooth ilk kayıt protokolü, Windows sihirbazı ve otomatik cihaza özel MQTT provisioning.
+8. Telefon uygulaması ve cihaz bazlı provisioning.
+9. Entegre bench testleri, ağ kesintisi/failsafe testleri ve kontrollü saha doğrulaması.
 
 ## Doğrulama
 
