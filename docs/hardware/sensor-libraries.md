@@ -4,7 +4,7 @@ The firmware target is the classic ESP32-based Deneyap Kart (board = deneyapkart
 
 | Hardware | Installed driver | Version / source | Integration status |
 |---|---|---|---|
-| FLIR Lepton 3.5 | Lepton-FLiR-Arduino | 2.1.1 — https://registry.platformio.org/libraries/NachtRaveVL/Lepton-FLiR-Arduino | Dependency installed; verify exact breakout, SPI/VoSPI timing, I2C CCI and radiometry on the actual board |
+| FLIR Lepton 3.5 | Lepton-FLiR-Arduino | 2.1.1, pinned to upstream commit 8577d336ecfc12dc8f3d0612cf8b6dcd681d626f — https://github.com/NachtRaveVL/Lepton-FLiR-Arduino | Dependency installed; verify exact breakout, SPI/VoSPI timing, I2C CCI and radiometry on the actual board |
 | Garmin LIDAR-Lite v3 | Garmin LIDAR-Lite | 3.0.6 — https://registry.platformio.org/libraries/garmin/LIDAR-Lite | Official Garmin library; dependency installed; confirm I2C wiring, power and range readings on hardware |
 | Qorvo DWM3000 | No dependency selected yet | No stable, verified PlatformIO package found that can safely be declared compatible with this exact module/board | Do not substitute DW1000-only libraries. Select a licensed DW3000 driver and validate module revision, SPI/IRQ/reset pins and ranging examples before integration |
 | XMOS XVF3800 | No Arduino sensor library | Official firmware/host tools: https://github.com/respeaker/reSpeaker_XVF3800_USB_4MIC_ARRAY | USB version requires a USB host and USB Audio Class capture; Deneyap Kart V2 must not be treated as a USB host. I2S integration requires the matching I2S firmware, verified pinout and clock/master-slave configuration |
