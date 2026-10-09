@@ -35,6 +35,7 @@ function Get-CommandVersion {
     param([string]$Name, [string[]]$Arguments = @('--version'))
     $path = Find-CommandPath $Name
     if (-not $path) { return $null }
+    if ($Name -eq 'go' -and $Arguments.Count -eq 1 -and $Arguments[0] -eq '--version') { $Arguments = @('version') }
     try {
         $output = & $path @Arguments 2>&1 | Select-Object -First 1
         return [string]$output
