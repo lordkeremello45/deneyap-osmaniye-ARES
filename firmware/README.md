@@ -13,7 +13,7 @@ A compile-only smoke translation unit includes the Lepton and Garmin public head
 ## Components without a verified integrated driver
 
 - **Qorvo DWM3000:** selected driver candidate is [br101/dw3000-decadriver-source at commit 67dfbb7f2c5b1a4157b8c265b19f08776e91b1cc](https://github.com/br101/dw3000-decadriver-source/commit/67dfbb7f2c5b1a4157b8c265b19f08776e91b1cc). This is an ESP-IDF-oriented DW3xxx port, not a PlatformIO Arduino library and is not integrated into this firmware yet. Review its license notices, pin the source, reconcile the exact ESP32-S3 board target, compile the IDF/Arduino combination, check device ID, then perform two-node ranging. Do not substitute DW1000-only libraries.
-- **XMOS XVF3800:** default architecture is USB Audio Class 2.0 to the Windows companion host only if the physical device is a matching UA/USB assembly. A bare XVF3800 chip plus microphones requires a designed PCB and firmware. I2S requires the matching firmware variant and verified host clock/channel/pin configuration.
+- **XMOS XVF3800:** selected interface is USB Audio Class 2.0 (UAC2) to a host computer, provided the physical unit is a matching UA/USB assembly with UAC2 firmware. The host agent in `../host_tools/xvf3800_uac2/` captures audio and sends only RMS/peak summaries to the Go bridge. A bare chip plus microphones requires a designed PCB and firmware. I2S requires a matching firmware variant and verified host clock/channel/pin configuration.
 - **Geospace GS-One LF:** analog signal source; requires a low-noise analog front end, filtering, suitable ADC input range and calibration.
 - **74LVC2G17:** hardware Schmitt-trigger buffer; no software driver. It is not a bidirectional level shifter.
 
