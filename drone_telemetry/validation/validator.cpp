@@ -2,13 +2,15 @@
 
 #include <cmath>
 #include <cstdint>
+#include <cstdlib>
 
 namespace ares::telemetry {
 
 ValidationStatus Validator::validate(const TelemetryPacket& packet,
                                      std::uint32_t previous_sequence,
                                      std::int64_t now_ms) const {
-  if (packet.timestamp_ms <= 0 || std::llabs(now_ms - packet.timestamp_ms) > 5000) {
+  if (packet.timestamp_ms <= 0 ||
+      std::llabs(now_ms - packet.timestamp_ms) > 5000) {
     return ValidationStatus::InvalidTimestamp;
   }
 

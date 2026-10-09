@@ -66,7 +66,12 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
-      - uses: platformio/action@v2
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install PlatformIO Core
+        run: python -m pip install --upgrade platformio
       - name: Build
         working-directory: firmware
         run: pio run
