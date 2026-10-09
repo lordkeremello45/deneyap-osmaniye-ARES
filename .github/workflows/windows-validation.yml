@@ -8,6 +8,7 @@ on:
       - "drone_telemetry/**"
       - "bridge_service/**"
       - "scripts/windows/**"
+      - ".gitattributes"
       - ".github/workflows/windows-validation.yml"
   pull_request:
     branches: [main]
@@ -16,6 +17,7 @@ on:
       - "drone_telemetry/**"
       - "bridge_service/**"
       - "scripts/windows/**"
+      - ".gitattributes"
       - ".github/workflows/windows-validation.yml"
   workflow_dispatch:
 
@@ -71,7 +73,10 @@ jobs:
         working-directory: bridge_service
         shell: pwsh
         run: |
-          gofmt -l . | ForEach-Object { if ($_ -ne '') { throw "Unformatted Go file: $_" } }
+          $goFiles = Get-ChildItem -Recurse -File -Filter *.go | ForEach-Object { $_.FullName }
+          $unformatted = gofmt -l $goFiles
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if ($unformatted) { throw "Unformatted Go files: $($unformatted -join ', ')" }
           go vet ./...
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           go test -count=1 ./...
