@@ -12,11 +12,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
+	"math"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 )
@@ -31,6 +34,22 @@ type TelemetryResponse struct {
 	Status  string          `json:"status"`
 	Data    json.RawMessage `json:"data"`
 	Message string          `json:"message"`
+}
+
+type AudioRMS struct {
+	Source       string    `json:"source"`
+	CapturedAt   time.Time `json:"captured_at"`
+	SampleRateHz int       `json:"sample_rate_hz"`
+	Channels     int       `json:"channels"`
+	RMS          float64   `json:"rms"`
+	Peak         float64   `json:"peak"`
+	ReceivedAt   time.Time `json:"received_at"`
+}
+
+var audioState struct {
+	sync.RWMutex
+	latest AudioRMS
+	hasData bool
 }
 
 func bridgeAddress() (string, error) {
@@ -61,6 +80,81 @@ func writeJSON(w http.ResponseWriter, status int, value any) {
 	}
 }
 
+func receiveAudioRMS(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Set("Allow", http.MethodPost)
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"status": "method_not_allowed"})
+		return
+	}
+	r.Body = http.MaxBytesReader(w, r.Body, 4096)
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
+	var sample AudioRMS
+	if err := dec.Decode(&sample); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"status": "invalid_json"})
+		return
+	}
+	var extra any
+	if err := dec.Decode(&extra); !errors.Is(err, io.EOF) {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"status": "invalid_json"})
+		return
+	}
+
+	now := time.Now().UTC()
+	if sample.Source != "xvf3800_uac2" ||
+		sample.SampleRateHz < 8000 || sample.SampleRateHz > 96000 ||
+		sample.Channels < 1 || sample.Channels > 8 ||
+		math.IsNaN(sample.RMS) || math.IsInf(sample.RMS, 0) ||
+		math.IsNaN(sample.Peak) || math.IsInf(sample.Peak, 0) ||
+		sample.RMS < 0 || sample.RMS > 1 ||
+		sample.Peak < 0 || sample.Peak > 1 ||
+		sample.RMS > sample.Peak+0.02 ||
+		sample.CapturedAt.IsZero() ||
+		sample.CapturedAt.After(now.Add(2*time.Second)) ||
+		now.Sub(sample.CapturedAt) > 5*time.Second {
+		writeJSON(w, http.StatusUnprocessableEntity, map[string]string{"status": "invalid_audio_sample"})
+		return
+	}
+
+	sample.CapturedAt = sample.CapturedAt.UTC()
+	sample.ReceivedAt = now
+	audioState.Lock()
+	audioState.latest = sample
+	audioState.hasData = true
+	audioState.Unlock()
+	writeJSON(w, http.StatusAccepted, map[string]string{"status": "accepted"})
+}
+
+func readAudioRMS(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.Header().Set("Allow", http.MethodGet)
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"status": "method_not_allowed"})
+		return
+	}
+	audioState.RLock()
+	sample, ok := audioState.latest, audioState.hasData
+	audioState.RUnlock()
+	if !ok || time.Since(sample.ReceivedAt) > 3*time.Second {
+		writeJSON(w, http.StatusServiceUnavailable, map[string]any{
+			"status": "waiting_for_xvf3800",
+			"data":   nil,
+		})
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"status": "ok",
+		"data": map[string]any{
+			"source": sample.Source,
+			"captured_at": sample.CapturedAt,
+			"sample_rate_hz": sample.SampleRateHz,
+			"channels": sample.Channels,
+			"rms": sample.RMS,
+			"peak": sample.Peak,
+			"age_ms": time.Since(sample.ReceivedAt).Milliseconds(),
+		},
+	})
+}
+
 func newHandler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
@@ -77,16 +171,16 @@ func newHandler() http.Handler {
 			writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"status": "method_not_allowed"})
 			return
 		}
-		// No serial/MQTT device adapter exists yet. Never fabricate live sensor data
-		// or return HTTP 200 for a telemetry endpoint that has no source.
+		// The full serial telemetry adapter is not implemented yet. Audio RMS
+		// is exposed separately and must not be mistaken for complete telemetry.
 		writeJSON(w, http.StatusServiceUnavailable, TelemetryResponse{
-			Version: 1,
-			Source:  "ares",
-			Status:  "waiting_for_device",
-			Data:    json.RawMessage("null"),
-			Message: "No telemetry source is connected; values are unavailable.",
+			Version: 1, Source: "ares", Status: "waiting_for_device",
+			Data: json.RawMessage("null"),
+			Message: "Full telemetry source is not connected; values are unavailable.",
 		})
 	})
+	mux.HandleFunc("/api/v1/audio/rms", receiveAudioRMS)
+	mux.HandleFunc("/api/v1/audio", readAudioRMS)
 	return mux
 }
 
@@ -97,12 +191,11 @@ func main() {
 	}
 
 	server := &http.Server{
-		Addr:              addr,
-		Handler:           newHandler(),
+		Addr: addr, Handler: newHandler(),
 		ReadHeaderTimeout: 5 * time.Second,
-		ReadTimeout:       10 * time.Second,
-		WriteTimeout:      10 * time.Second,
-		IdleTimeout:       60 * time.Second,
+		ReadTimeout: 10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout: 60 * time.Second,
 	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
