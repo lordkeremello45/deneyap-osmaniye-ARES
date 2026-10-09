@@ -68,3 +68,14 @@ Derleme, sensör haberleşmesinin, MQTT güvenliğinin veya kişi tespit başar�
 ## Durum
 
 ARES prototiptir. Sensör sonuçları operatör destek verisidir ve gerçek arama/kurtarma operasyonlarında sertifikalı sistemlerin yerine geçmez.
+
+## Project and community
+
+- [Contributors](CONTRIBUTORS.md) — project team and contribution credits.
+- [Contributing](CONTRIBUTING.md) — development workflow, testing, and pull request expectations.
+- [Code of Conduct](CODE_OF_CONDUCT.md) — collaboration standards.
+- [Security Policy](SECURITY.md) — responsible vulnerability reporting.
+- [Support](SUPPORT.md) — issue reporting and diagnostic information.
+- [Changelog](CHANGELOG.md) — notable project changes.
+- [GitHub contributors graph](https://github.com/lordkeremello45/deneyap-osmaniye-ARES/graphs/contributors) — contributions recorded by GitHub.
+
