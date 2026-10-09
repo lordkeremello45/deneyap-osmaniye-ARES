@@ -1,6 +1,6 @@
 # Sensor library integration — Deneyap Kart V2
 
-The firmware target is the classic ESP32-based Deneyap Kart (board = deneyapkart). The PlatformIO build pins the latest stable registry releases selected for the physical BOM:
+The firmware target is the classic ESP32-based Deneyap Kart (board = deneyapkart). The PlatformIO build pins the latest stable release or an exact upstream commit for the physical BOM:
 
 | Hardware | Installed driver | Version / source | Integration status |
 |---|---|---|---|
