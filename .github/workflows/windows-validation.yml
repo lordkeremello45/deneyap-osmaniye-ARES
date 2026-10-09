@@ -1,0 +1,101 @@
+name: ARES Windows Validation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "ai_core/**"
+      - "drone_telemetry/**"
+      - "bridge_service/**"
+      - "scripts/windows/**"
+      - ".github/workflows/windows-validation.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "ai_core/**"
+      - "drone_telemetry/**"
+      - "bridge_service/**"
+      - "scripts/windows/**"
+      - ".github/workflows/windows-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ares-windows-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    name: Windows host build, tests, and preflight
+    runs-on: windows-2022
+    timeout-minutes: 25
+    steps:
+      - name: Checkout without persisted credentials
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: bridge_service/go.mod
+          cache: false
+
+      - name: Run Windows preflight diagnostics
+        shell: pwsh
+        run: |
+          ./scripts/windows/ares-doctor.ps1 -Mode Developer
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Build and test telemetry
+        shell: pwsh
+        run: |
+          cmake -S drone_telemetry -B build/telemetry
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cmake --build build/telemetry --config Release --parallel 2
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ctest --test-dir build/telemetry -C Release --output-on-failure
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Build C++ AI core
+        shell: pwsh
+        run: |
+          cmake -S ai_core -B build/ai-core
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cmake --build build/ai-core --config Release --parallel 2
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Vet, test, and build Go bridge
+        working-directory: bridge_service
+        shell: pwsh
+        run: |
+          gofmt -l . | ForEach-Object { if ($_ -ne '') { throw "Unformatted Go file: $_" } }
+          go vet ./...
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          go test -count=1 ./...
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          go build -buildvcs=false -trimpath -o ../build/ares-bridge.exe .
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Verify report schema and no secret fields
+        shell: pwsh
+        run: |
+          $report = Get-Content -Raw ares-windows-preflight.json | ConvertFrom-Json
+          if ($report.schemaVersion -ne 1) { throw "Unexpected preflight schema version." }
+          if ($report.checks.Count -lt 5) { throw "Preflight report is missing expected checks." }
+          $serialized = $report | ConvertTo-Json -Depth 8
+          if ($serialized -match '(?i)"(password|mqttKey|mqttSecret|privateKey|pin)"\s*:') {
+            throw "Preflight report must not contain secret-bearing fields."
+          }
+          Write-Host "Preflight JSON schema smoke test passed."
+
+      - name: Upload sanitized diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ares-windows-preflight
+          path: ares-windows-preflight.json
+          if-no-files-found: warn
+          retention-days: 7
