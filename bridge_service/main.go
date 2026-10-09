@@ -11,6 +11,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -30,6 +31,24 @@ type TelemetryResponse struct {
 	Status  string          `json:"status"`
 	Data    json.RawMessage `json:"data"`
 	Message string          `json:"message"`
+}
+
+func bridgeAddress() (string, error) {
+	addr := os.Getenv("ARES_BRIDGE_ADDR")
+	if addr == "" {
+		addr = "127.0.0.1:8080"
+	}
+	host, _, err := net.SplitHostPort(addr)
+	if err != nil {
+		return "", fmt.Errorf("invalid ARES_BRIDGE_ADDR %q: %w", addr, err)
+	}
+	if host != "localhost" {
+		ip := net.ParseIP(host)
+		if ip == nil || !ip.IsLoopback() {
+			return "", fmt.Errorf("ARES bridge is an unauthenticated prototype and may bind only to loopback, got %q", host)
+		}
+	}
+	return addr, nil
 }
 
 func writeJSON(w http.ResponseWriter, status int, value any) {
@@ -72,13 +91,9 @@ func newHandler() http.Handler {
 }
 
 func main() {
-	addr := os.Getenv("ARES_BRIDGE_ADDR")
-	if addr == "" {
-		// Keep the prototype loopback-only until TLS/authenticated remote access exists.
-		addr = "127.0.0.1:8080"
-	}
-	if _, _, err := net.SplitHostPort(addr); err != nil {
-		log.Fatalf("invalid ARES_BRIDGE_ADDR %q: %v", addr, err)
+	addr, err := bridgeAddress()
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	server := &http.Server{
