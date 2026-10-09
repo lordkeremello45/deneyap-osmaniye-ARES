@@ -38,3 +38,23 @@ The DWM3000 is a 24-pin castellated RF module, not a breadboard-ready breakout. 
 - [Qorvo DWM3000 datasheet](https://www.decawave.com/wp-content/uploads/2021/01/DWM3000-Datasheet-1.pdf)
 - [Pinned DW3xxx driver reference](https://github.com/br101/dw3000-decadriver-source/commit/67dfbb7f2c5b1a4157b8c265b19f08776e91b1cc)
 - [Qorvo DWM3000 product information](https://www.qorvo.com/products/p/DWM3000)
+
+## Provisional DENEYAP Kart V2 signal allocation (not yet activated in firmware)
+
+The official DENEYAP Kart V2 expanded pin diagram exposes these board labels: D0–D23, with D5/SCK, D6/MISO, D7/MOSI, D4/SS and dedicated I²C connector pins D10/SDA and D11/SCL. Because the existing Lepton path may use the default SPI bus, the initial carrier proposal reserves a **separate SPI bus** for DWM3000:
+
+| DWM3000 signal | Proposed DENEYAP Kart V2 label | Notes |
+|---|---|---|
+| SPICLK | D0 | Dedicated SPI clock; verify exact Arduino-core pin mapping before PCB layout |
+| SPIMISO | D1 | Dedicated SPI input to host |
+| SPIMOSI | D2 | Dedicated SPI output from host |
+| SPICSn (active-low) | D3 | Keep high while host is idle; add a pull-up as required by the datasheet |
+| IRQ | D8 | Host input with interrupt support; use correct polarity/edge from driver |
+| RESETn | D9 | Host output; confirm reset timing and voltage before layout |
+| WAKEUP | D12 | Host output; active-high per datasheet; can be omitted only if deliberately tied low and sleep/wake behavior is not required |
+| VSS/GND | GND | Common ground between module and host |
+| VDD3V3 / VDD1 | Carrier power rails per datasheet | **Do not wire these by assumption.** Verify the datasheet rail requirements, current, decoupling and module revision before PCB fabrication. |
+
+This is a **candidate allocation, not an electrically validated pin map**. Board labels such as D0/D1 are not necessarily the same as raw ESP32 GPIO numbers. The carrier schematic and firmware must use the exact mapping from the official DENEYAP Kart V2 core/pin table. The allocation intentionally avoids D4–D7 (the board's labelled default SPI pins) and D10/D11 (the I²C connector), but all existing sensor, SD and camera assignments must be cross-checked before approval. If any proposed pin is already reserved by ARES hardware, remap it before routing the PCB.
+
+Official board reference: [DENEYAP Kart V2 technical page and pin diagram](https://magaza.deneyapkart.org/tr/product/detail/deneyap-kart-v2-type-c).
