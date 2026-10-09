@@ -9,6 +9,7 @@ The following team members are associated with the project:
 - **Kerem Ademoglu** — project development
 - **Adem Bayezid YANIÇUM** — project development
 - **Berkay Kesik** — project development
+- **Ilgaz Orçan** — project development
 
 Names above identify the project team; they do not imply that each person authored every component. Component-level contributions should be credited in relevant source files, commits, or release notes.
 
