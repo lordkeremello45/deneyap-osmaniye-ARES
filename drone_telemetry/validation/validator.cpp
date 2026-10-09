@@ -14,7 +14,10 @@ ValidationStatus Validator::validate(const TelemetryPacket& packet,
     return ValidationStatus::InvalidTimestamp;
   }
 
-  if (packet.sequence <= previous_sequence) {
+  // RFC-style serial-number arithmetic permits uint32 wrap-around while
+  // rejecting duplicates and values that are older by half the sequence space.
+  const std::uint32_t sequence_delta = packet.sequence - previous_sequence;
+  if (sequence_delta == 0U || sequence_delta > 0x7FFFFFFFU) {
     return ValidationStatus::InvalidSequence;
   }
 
