@@ -1,0 +1,8 @@
+project Ares_Safety is
+   for Source_Dirs use (".");
+   for Object_Dir use "obj";
+   for Main use ();
+   package Compiler is
+      for Switches ("Ada") use ("-gnat2022", "-gnata");
+   end Compiler;
+end Ares_Safety;
