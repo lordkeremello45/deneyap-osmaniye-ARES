@@ -62,7 +62,7 @@ class _DashboardState extends State<Dashboard> {
       } else {
         setState(() {
           telemetry = {
-            'status': 'Bridge HTTP \${response.statusCode}',
+            'status': 'Bridge HTTP ${response.statusCode}',
           };
         });
       }
@@ -88,7 +88,7 @@ class _DashboardState extends State<Dashboard> {
             Card(
               child: ListTile(
                 title: const Text('Sistem'),
-                subtitle: Text('\${telemetry['status']}'),
+                subtitle: Text('${telemetry['status']}'),
               ),
             ),
             const Card(
