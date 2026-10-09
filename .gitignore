@@ -1,69 +1,173 @@
-# Prerequisites
-*.d
+# ============================================================
+# ARES — generated files, local configuration, and secrets
+# Keep source code, tests, documentation, and configuration
+# examples tracked. Never rely on .gitignore as a security control.
+# ============================================================
 
-# Compiled Object files
+# --- Compiled objects and libraries ---
+*.d
 *.slo
 *.lo
 *.o
 *.obj
-
-# Precompiled Headers
 *.gch
 *.pch
-
-# Linker files
 *.ilk
-
-# Debugger Files
 *.pdb
-
-# Compiled Dynamic libraries
 *.so
 *.dylib
 *.dll
 *.so.*
-
-
-# Fortran module files
+*.dwo
 *.mod
 *.smod
-
-# Compiled Static libraries
 *.lai
 *.la
 *.a
 *.lib
-
-# Executables
 *.exe
 *.out
 *.app
 
-# Build directories
+# --- Build output ---
 build/
 Build/
 build-*/
-
-# CMake generated files
+out/
+dist/
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
-Makefile
 install_manifest.txt
 compile_commands.json
-
-# Temporary files
-*.tmp
-*.log
-*.bak
-*.swp
-
-# vcpkg
-vcpkg_installed/
-
-# debug information files
-*.dwo
-
-# test output & cache
 Testing/
+.vs/
+x64/
+x86/
+Debug/
+Release/
+cmake-build-*/
+
+# Keep project build scripts and source files tracked.
+!**/CMakeLists.txt
+!**/*.cmake
+
+# --- Go ---
+/bridge_service/ares-bridge
+/bridge_service/ares-bridge.exe
+/bridge_service/*.test
+coverage.out
+coverage.html
+/vendor/
+
+# --- Node.js / Astro / frontend ---
+node_modules/
+.npm/
+.pnpm-store/
+.turbo/
+.astro/
+.parcel-cache/
+.next/
+.nuxt/
+.svelte-kit/
+coverage/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# --- Python tooling and virtual environments ---
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.venv/
+venv/
+ENV/
+env/
+
+# --- IDEs and editor swap files ---
+.idea/
+*.swp
+*.swo
+*.tmp
+*.bak
+*~
+.DS_Store
+Thumbs.db
+
+# --- Local environment and credentials ---
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+*.local
+secrets/
+private/
+credentials/
+*_credentials.json
+*_secrets.json
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# --- Local certificates and provisioning artifacts ---
+# Commit public CA certificates only when intentionally reviewed.
+*.csr
+*.srl
+provisioning-output/
+provisioning-secrets/
+mqtt-credentials/
+device-credentials/
+
+# --- Models and large generated AI artifacts ---
+# Keep model download instructions/manifests tracked, not model weights.
+*.gguf
+*.ggml
+*.safetensors
+*.onnx
+*.pt
+*.pth
+*.tflite
+*.engine
+models/
+!models/README.md
+!models/**/README.md
+
+# --- Runtime logs, telemetry, and diagnostic output ---
+*.log
+logs/
+telemetry-output/
+telemetry-dumps/
+diagnostics-output/
+crash-dumps/
+*.core
+core.*
+
+# --- Test output and caches ---
 .cache/
+tmp/
+temp/
+*.prof
+*.coverage
+htmlcov/
+
+# --- Hardware / firmware generated output ---
+*.bin
+*.elf
+*.hex
+*.uf2
+*.map
+*.lst
+*.dmp
+# Allow intentional firmware images to be force-added only after review.
+
+# --- Package managers / native dependencies ---
+vcpkg_installed/
