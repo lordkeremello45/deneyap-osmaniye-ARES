@@ -19,7 +19,7 @@
 - No calibrated sensor fusion or validated survivor detection exists. Thresholds are provisional and unvalidated.
 - Firmware sensor acquisition remains a scaffold. GPIO assignments and module-specific integration are blocked on physical board/module verification.
 - MQTT TLS, per-device credentials, ACL provisioning, pairing and secure remote API are design work, not operational features.
-- Android controller is a prototype; its 127.0.0.1 address refers to the Android device itself, not the Windows host. A secure, reachable endpoint and authenticated transport must be implemented before phone-to-host telemetry works.
+- Android controller is a prototype; bridge URL is now an explicit ARES_BRIDGE_URL build-time setting instead of a hardcoded localhost address. It defaults to unset, remote URLs require HTTPS, and the bridge itself binds only to loopback until authenticated remote access exists. Phone-to-host telemetry therefore remains intentionally unavailable until secure transport and a real telemetry adapter are implemented.
 - No software change provides motor control or replaces an independent flight controller/failsafe.
 
 ## Required validation
