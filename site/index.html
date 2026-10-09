@@ -1,1 +1,51 @@
-<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="ARES — Deneyap Osmaniye enkaz arama prototipi"><title>ARES | Deneyap Osmaniye</title><style>:root{color-scheme:dark;--bg:#0b1220;--panel:#131e30;--line:#263750;--text:#eef4ff;--muted:#a9bad0;--accent:#55d6be}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% 0%,#17334a,transparent 45%),var(--bg);color:var(--text);font:16px/1.6 system-ui,sans-serif}main{max-width:1000px;margin:auto;padding:48px 22px}header{padding:38px 0}h1{font-size:clamp(3rem,9vw,6rem);line-height:1;margin:0;color:var(--accent);letter-spacing:-.06em}h2{margin-top:0}p{color:var(--muted)}.tag{display:inline-block;border:1px solid var(--line);border-radius:99px;padding:5px 12px;color:var(--accent);margin:6px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px}a{color:var(--accent)}footer{border-top:1px solid var(--line);margin-top:36px;padding-top:18px;color:var(--muted);font-size:.9rem}</style></head><body><main><header><span class="tag">Deneyap Osmaniye</span><span class="tag">Araştırma · Prototip</span><h1>ARES</h1><h2>Drone destekli enkaz arama ve kurtarma</h2><p>Çoklu sensör verisini güvenilir biçimde toplayıp operatöre anlaşılır durum bilgisi sunmayı hedefleyen mühendislik prototipi.</p></header><section class="grid"><article class="card"><h2>İşlem</h2><p>İki Deneyap Kart V2, eşit düğümlü çift yönlü UART ve yerel kayıt.</p></article><article class="card"><h2>Algılama</h2><p>UWB, termal, akustik/sismik ve LiDAR adayları; kesin modeller doğrulama sonrası seçilecek.</p></article><article class="card"><h2>Güç ve mekanik</h2><p>Regüle mantık beslemesi, motor/aviyonik güç ayrımı, kompozit gövde ve pervane koruması.</p></article></section><section class="card" style="margin-top:16px"><h2>Geliştirme aşamaları</h2><ol><li>Gereksinim ve risk analizi</li><li>Donanım araştırma ve eleme</li><li>UART protokolü ve iki kart testleri</li><li>Sensör sürücüleri ve veri füzyonu</li><li>Güç/mekanik doğrulama</li><li>Kontrollü saha testleri</li></ol></section><section class="card" style="margin-top:16px"><h2>Kaynaklar</h2><p><a href="https://github.com/lordkeremello45/deneyap-osmaniye-ARES">GitHub deposu</a> · <a href="../docs/architecture.md">Mimari</a> · <a href="../docs/protocol/uart-peer.md">UART protokolü</a></p></section><footer>ARES prototiptir; profesyonel ekiplerin ve sertifikalı sistemlerin yerine geçmez. Algılama çıktıları doğrulama gerektiren operatör destek verileridir.</footer></main></body></html>
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="ARES — Deneyap Osmaniye enkaz arama prototipi">
+<title>ARES | Deneyap Osmaniye</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1220;--panel:#131e30;--line:#263750;--text:#eef4ff;--muted:#a9bad0;--accent:#55d6be}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 80% 0%,#17334a,transparent 45%),var(--bg);color:var(--text);font:16px/1.6 system-ui,sans-serif}
+main{max-width:1000px;margin:auto;padding:48px 22px}
+header{padding:38px 0}
+h1{font-size:clamp(3rem,9vw,6rem);line-height:1;margin:0;color:var(--accent);letter-spacing:-.06em}
+h2{margin-top:0}
+p{color:var(--muted)}
+.tag{display:inline-block;border:1px solid var(--line);border-radius:99px;padding:5px 12px;color:var(--accent);margin:6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px}
+a{color:var(--accent)}
+footer{border-top:1px solid var(--line);margin-top:36px;padding-top:18px;color:var(--muted);font-size:.9rem}
+</style>
+</head>
+<body>
+<main>
+<header>
+<span class="tag">Deneyap Osmaniye</span><span class="tag">Araştırma · Prototip</span>
+<h1>ARES</h1>
+<h2>Drone destekli enkaz arama ve kurtarma</h2>
+<p>Çoklu sensör verisini güvenilir biçimde toplayıp operatöre anlaşılır durum bilgisi sunmayı hedefleyen mühendislik prototipi.</p>
+</header>
+<section class="grid">
+<article class="card"><h2>İşlem</h2><p>İki Deneyap Kart V2, eşit düğümlü çift yönlü UART ve yerel kayıt.</p></article>
+<article class="card"><h2>Algılama</h2><p>FLIR Lepton 3.5, Qorvo DWM3000, XMOS XVF3800, Geospace GS-One LF ve Garmin LIDAR-Lite v3; entegrasyon doğrulaması sürmektedir.</p></article>
+<article class="card"><h2>Güç ve mekanik</h2><p>Regüle mantık beslemesi, motor/aviyonik güç ayrımı, kompozit gövde ve pervane koruması.</p></article>
+</section>
+<section class="card" style="margin-top:16px">
+<h2>Geliştirme aşamaları</h2>
+<ol><li>Gereksinim ve risk analizi</li><li>Donanım araştırma ve eleme</li><li>UART protokolü ve iki kart testleri</li><li>Sensör sürücüleri ve veri füzyonu</li><li>Güç/mekanik doğrulama</li><li>Kontrollü saha testleri</li></ol>
+</section>
+<section class="card" style="margin-top:16px">
+<h2>Kaynaklar</h2>
+<p><a href="https://github.com/lordkeremello45/deneyap-osmaniye-ARES">GitHub deposu ve kaynak kodu</a> · <a href="https://github.com/lordkeremello45/deneyap-osmaniye-ARES/blob/main/LICENSE-AGPL-3.0">AGPLv3 lisansı</a> · <a href="https://github.com/lordkeremello45/deneyap-osmaniye-ARES/blob/main/docs/architecture.md">Mimari</a> · <a href="https://github.com/lordkeremello45/deneyap-osmaniye-ARES/blob/main/docs/protocol/uart-peer.md">UART protokolü</a></p>
+</section>
+<footer>
+<p>ARES prototiptir; profesyonel ekiplerin ve sertifikalı sistemlerin yerine geçmez. Algılama çıktıları doğrulama gerektiren operatör destek verileridir.</p>
+<p>Bu web sitesi kaynak kodu AGPLv3 kapsamında sunulur. Garanti verilmez. <a href="https://www.gnu.org/licenses/agpl-3.0.html">Lisans metni</a> · <a href="https://github.com/lordkeremello45/deneyap-osmaniye-ARES">Kaynak kodu</a></p>
+</footer>
+</main>
+</body>
+</html>
