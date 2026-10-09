@@ -43,6 +43,10 @@ int main() {
   assert(validator.validate(packet, 9, 0) == ValidationStatus::InvalidTimestamp);
   assert(validator.validate(packet, 9, 106000) == ValidationStatus::InvalidTimestamp);
 
+  // A monotonically increasing 32-bit counter remains valid across wrap-around.
+  packet.sequence = 0U;
+  assert(validator.validate(packet, 0xFFFFFFFFU, 100001) == ValidationStatus::Valid);
+
   TelemetryCollector collector;
   collector.accept(packet);
   assert(collector.latest().sequence == packet.sequence);
