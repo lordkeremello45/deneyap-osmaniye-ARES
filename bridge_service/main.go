@@ -1,3 +1,11 @@
+// ARES Go Bridge Service
+// Copyright (C) 2026 ARES contributors
+//
+// This file is additionally offered under the GNU Affero General Public
+// License v3.0 for the bridge_service/ component only. See ../LICENSE-AGPL-3.0
+// and ../LICENSES.md. The repository's other components retain their
+// separately stated licensing terms.
+
 package main
 
 import (
