@@ -4,7 +4,7 @@ Target: Deneyap Kart V2 / classic ESP32 / Arduino framework, built with Platform
 
 ## Installed sensor libraries
 
-- **FLIR Lepton 3.5:** `NachtRaveVL/Lepton-FLiR-Arduino@2.1.1`. Provides Lepton CCI/VoSPI access. Actual breakout wiring, SPI timing, reset/VSYNC pins, radiometry mode and thermal reference validation remain hardware tasks.
+- **FLIR Lepton 3.5:** `NachtRaveVL/Lepton-FLiR-Arduino` v2.1.1, pinned to commit `8577d336ecfc12dc8f3d0612cf8b6dcd681d626f`. Provides Lepton CCI/VoSPI access. Actual breakout wiring, SPI timing, reset/VSYNC pins, radiometry mode and thermal reference validation remain hardware tasks.
 - **Garmin LIDAR-Lite v3:** `garmin/LIDAR-Lite@3.0.6`, the manufacturer's Arduino library. The VL53L1X driver is not appropriate for this sensor.
 - **SD card:** ESP32 Arduino SD/SPI APIs are part of the framework; no extra sensor library is required.
 
