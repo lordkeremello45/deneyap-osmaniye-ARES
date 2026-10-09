@@ -2,16 +2,14 @@
 
 ARES is developed by the **ROBO-TECH** team as a search-and-rescue UAV research and prototyping project.
 
-## Project team
+## Project team and responsibilities
 
-The following team members are associated with the project:
+- **Kerem ADEMOĞLU** — software development
+- **Adem Bayezid YANIÇUM** — workshop lead; hardware and workshop activities
+- **Berkay KESİK** — Canva designs and presentations
+- **Ilgaz ORÇAN** — 3D design
 
-- **Kerem Ademoglu** — project development
-- **Adem Bayezid YANIÇUM** — project development
-- **Berkay Kesik** — project development
-- **Ilgaz Orçan** — project development
-
-Names above identify the project team; they do not imply that each person authored every component. Component-level contributions should be credited in relevant source files, commits, or release notes.
+These roles describe the team's current areas of responsibility and do not imply that each person authored every component. Component-level contributions should be credited in relevant source files, commits, or release notes.
 
 ## Open-source contributions
 
