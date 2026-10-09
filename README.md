@@ -77,5 +77,6 @@ ARES prototiptir. Sensör sonuçları operatör destek verisidir ve gerçek aram
 - [Security Policy](SECURITY.md) — responsible vulnerability reporting.
 - [Support](SUPPORT.md) — issue reporting and diagnostic information.
 - [Changelog](CHANGELOG.md) — notable project changes.
+- [Source bibliography](source.md) — consolidated hardware/materials inventory, official datasheets, software dependencies, and open verification items.
 - [GitHub contributors graph](https://github.com/lordkeremello45/deneyap-osmaniye-ARES/graphs/contributors) — contributions recorded by GitHub.
 
