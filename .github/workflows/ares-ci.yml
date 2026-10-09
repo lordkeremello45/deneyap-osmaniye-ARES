@@ -27,6 +27,7 @@ jobs:
       - uses: actions/checkout@v5
       - run: cmake -S ai_core -B ai_core/build
       - run: cmake --build ai_core/build --parallel
+      - run: ctest --test-dir ai_core/build --output-on-failure
 
   go:
     name: Go Bridge
