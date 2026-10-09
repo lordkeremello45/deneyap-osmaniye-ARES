@@ -32,7 +32,8 @@ std::string Engine::analyze(const SensorFrame& frame) const {
   if (!finite_frame(frame)) return invalid_result("non_finite_sensor_value");
   if (frame.thermal_anomaly_c < -100.0 || frame.thermal_anomaly_c > 100.0 ||
       frame.acoustic_rms < 0.0 || frame.seismic_rms < 0.0 ||
-      frame.uwb_distance_m < -1.0 || frame.lidar_distance_m < -1.0) {
+      (frame.uwb_distance_m < 0.0 && frame.uwb_distance_m != -1.0) ||
+      (frame.lidar_distance_m < 0.0 && frame.lidar_distance_m != -1.0)) {
     return invalid_result("sensor_value_out_of_range");
   }
 
