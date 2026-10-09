@@ -2,7 +2,7 @@
 
 ## Uygulama aşaması
 
-Öncelik şu anda **Deneyap Kart V2 firmware'i, sensör veri edinimi ve doğrulanabilir telemetry sözleşmesidir**. Mobil uygulama henüz geliştirme odağı değildir. Bluetooth/Deneyap BT veya MQTT seçimi sonraki aşamaya bırakılmıştır; bağlantı kararı ölçüm ve menzil testleriyle verilecektir.
+Öncelik Deneyap Kart V2 firmware'i, sensör veri edinimi ve doğrulanabilir telemetry sözleşmesidir. MQTT, Windows Ground Station ile telefon/uyumlu cihazlar arasındaki hedef yerel ağ taşımasıdır; güvenli eşleştirme ve otomatik broker kurulumu henüz uygulanmış değildir. Önce sensör verisi ve link davranışı doğrulanır, sonra entegrasyon yapılır.
 
 ## Hedef veri hattı
 
@@ -14,18 +14,17 @@ Deneyap Kart V2 / ESP32 node(s)
   - timestamps, sequence numbers, status/quality flags
   - basic range/finite checks
   - buffering and SD/raw logging where appropriate
-  ↓ UART or a separately validated local link
-Companion host computer (hardware TBD)
-  - packet validation and raw recorder/replay
+  ↓ validated local link / Wi-Fi after hardware validation
+Windows Ground Station
+  - packet validation, raw recorder/replay
   - filtering, windowing, feature extraction, sensor fusion
   - Gemma 4 E2B Q5_K_M via llama.cpp
-  ↓ structured advisory result
-Future transport/interface (TBD)
-  - Deneyap BT/BLE or MQTT over Wi-Fi
-  - later Android/iOS controller
+  - local API + Mosquitto broker lifecycle/pairing service (planned)
+  ↓ authenticated TLS + MQTT metadata/commands
+Paired Android operator app (planned)
 ```
 
-Bu şema hedef mimaridir; henüz çalışan, uçtan uca entegre edilmiş bir sistem olarak değerlendirilmemelidir. Companion host donanımı henüz seçilmemiştir.
+Bu şema hedef mimaridir; çalışan, uçtan uca entegre edilmiş sistem olarak değerlendirilmemelidir. Companion host donanımı henüz kesinleştirilmemiştir.
 
 ## Katman sorumlulukları
 
@@ -35,28 +34,37 @@ Deneyap Kart V2 sensör okumalarını edinir, her ölçüme timestamp/sequence v
 
 ### Raw storage and replay
 
-Ham ölçümler ve türetilmiş özellikler birbirinden ayrılır. Ham kayıtlar kalibrasyon, model karşılaştırması ve hata ayıklama için korunur. SD kart yazımı veri kaybı ve zamanlama açısından test edilir.
+Ham ölçümler ve türetilmiş özellikler birbirinden ayrılır. Ham kayıtlar kalibrasyon, model karşılaştırması ve hata ayıklama için korunur. SD kart yazımı veri kaybı ve zamanlama açısından test edilir. Ağ kesintisinde kayıt yerelde sürer.
 
-### Companion host / AI Core
+### Windows Ground Station / AI Core
 
-C++ AI Core, ESP32'nin dışında çalışacak bir host bilgisayar hedefler. İşlem hattı:
+C++ AI Core, Windows veya uyumlu companion host üzerinde çalışacak şekilde hedeflenir. İşlem hattı:
 
-`validated telemetry → time alignment/windowing → feature extraction → deterministic sensor fusion → Gemma 4 E2B Q5_K_M → versioned result`
+validated telemetry → time alignment/windowing → feature extraction → deterministic sensor fusion → Gemma 4 E2B Q5_K_M → versioned advisory result
 
-Model girişine bütün ham yüksek hızlı akışları kontrolsüz şekilde yığmak yerine doğrulanmış özellikler, sensör kalite bayrakları ve gerekiyorsa seçilmiş görüntü/akustik segmentleri verilir. Gemma çoklu sensör kanıtlarını yorumlayan katmandır; deterministik kontrollerin ve ham kayıtların yerini almaz. Model sonucu güven düzeyi ve kanıt kaynaklarıyla birlikte raporlanmalı, doğrulanmamış olasılıklar gerçek tespit olarak sunulmamalıdır.
+Model girişine bütün ham yüksek hızlı akışları kontrolsüz şekilde yığmak yerine doğrulanmış özellikler, sensör kalite bayrakları ve gerekiyorsa seçilmiş görüntü/akustik segmentleri verilir. Gemma kanıtları yorumlayan katmandır; deterministik kontrollerin ve ham kayıtların yerini almaz.
 
-### Gemma ve güvenlik sınırı
+### MQTT, pairing and credential lifecycle
 
-Gemma 4 E2B Q5_K_M GGUF yaklaşık 3,66 GB sınıfındadır ve ESP32/Deneyap Kart V2 üzerinde çalıştırılmak üzere seçilmemiştir. `llama.cpp` çalıştırabilecek yeterli RAM ve işlem gücüne sahip companion host gereklidir. Host seçimi ve model benchmark'ı açık gereksinimlerdir.
+Windows Ground Station yerel Mosquitto broker'ını yönetir. Broker yoksa uygulama görünür/onaylı bir kurulum akışı başlatır, sürümü ve servis sağlığını doğrular, güvenli yapılandırma uygular ve yalnızca tüm kontroller geçerse hazır duruma geçer. Mevcut Mosquitto yapılandırması izinsiz ezilmez.
 
-Gemma hiçbir koşulda motor PWM, flight stabilization veya donanımsal failsafe üzerinde doğrudan kontrol sahibi değildir. Bu fonksiyonlar deterministik, test edilebilir kontrol sistemlerinde kalır.
+Telefon eşleştirmesinde Windows'ta gösterilen altı haneli tek kullanımlık PIN, TLS ile korunan pairing endpoint'inde doğrulanır. PIN 120 saniyede sona erer, bir kez kullanılabilir ve hatalı denemeler sınırlandırılır. Başarılı eşleştirmeden sonra Windows cihaza özel, yüksek entropili MQTT kimlik bilgisi üretir ve sadece gerekli topic'lere ACL tanımlar. PIN, MQTT anahtarı değildir. Her telefon/ESP32 düğümü ayrı kimlik alır; ortak anahtar kullanılmaz. Ayrıntılı güvenlik şartları: [MQTT pairing specification](security/mqtt-pairing.md).
 
-### İletişim ve gelecek mobil katmanı
+SPARK anahtar kasası/şifreleme sistemi değildir. SPARK ile bazı durum makinesi ve komut kabul invariants'ları biçimsel olarak ifade edilebilir; gizli anahtarlar ise doğrulanmış TLS, işletim sistemi güvenli depolaması ve platformun desteklediği korumalarla yönetilmelidir. Deneyap kartında secure boot/flash encryption ve güvenli ilk kayıt mekanizması doğrulanana kadar fiziksel anahtar koruması iddia edilmez.
 
-- İlk etapta ESP32 telemetry'sini USB/UART/seri günlükleriyle doğrula.
-- Companion host bağlantısı için UART veya başka bir yerel link yalnızca elektriksel/performans testlerinden sonra sabitlenir.
-- Mobil operatör arayüzü daha sonraki aşamadır.
-- Deneyap BT/BLE ve MQTT alternatifleridir, kesin karar değildir. BLE düşük hacimli yakın alan telemetrisi için; MQTT ise Wi-Fi/IP ağı, broker güvenliği ve bağlantı sürekliliği gerektiğinde değerlendirilebilir. Nihai seçim güç, gecikme, menzil, paket kaybı ve saha ağ koşullarına göre yapılır.
+### MQTT topic ve mesaj kuralları
+
+- Telemetry: ares/v1/telemetry/<device_id>/...
+- Durum: ares/v1/status/<device_id>/...
+- Komut: ares/v1/command/<device_id>/...
+- Her cihaz yalnızca kendi telemetry/status alanına yazabilir; yalnızca kendi komut topic'ini dinleyebilir.
+- Komutlar sürümlü şema, command ID, son kullanma zamanı, tekrar oynatma/duplicate kontrolü, yetki ve cihaz durumu kontrollerinden geçer. Retained command mesajları reddedilir.
+- MQTT; metadata, özetler, AI sonuçları ve komut zarfları içindir. Yüksek hızlı ham audio/termal akışlar broker'a gelişigüzel gönderilmez.
+- Broker erişimi varsayılan olarak güvenilir yerel ağ arayüzüyle sınırlıdır; anonymous access kapalı, TLS ve ACL etkin olmalıdır. Güvenlik ön koşullarından biri başarısızsa pairing ve uzaktan komutlar kapalı kalır.
+
+### Gemma ve uçuş güvenliği sınırı
+
+Gemma 4 E2B Q5_K_M GGUF yaklaşık 3,66 GB sınıfındadır ve ESP32 üzerinde çalıştırılmak üzere seçilmemiştir. Yeterli RAM/işlem gücüne sahip bir host ve gerçek inference benchmark'ı gereklidir. Gemma hiçbir koşulda motor PWM, flight stabilization veya donanımsal failsafe üzerinde doğrudan kontrol sahibi değildir. Windows, MQTT veya telefon bağlantısı kaybolduğunda uçuş güvenliği yerleşik uçuş kontrol sisteminin doğrulanmış failsafe davranışına dayanmalıdır.
 
 ## Telemetry mesaj sözleşmesi taslağı
 
@@ -76,22 +84,19 @@ Gemma hiçbir koşulda motor PWM, flight stabilization veya donanımsal failsafe
 }
 ```
 
-Bu şema örnektir; firmware'de uygulanmış protokol olduğu iddia edilmez. Eksik veya geçersiz sensör değerleri uydurulmaz; `null`/status ile ifade edilir. Paket boyutu, endian, CRC, sequence rollover ve timestamp kaynağı protokol belgesinde kesinleştirilmelidir.
+Bu şema örnektir; firmware'de uygulanmış protokol olduğu iddia edilmez. Eksik veya geçersiz sensör değerleri uydurulmaz; null/status ile ifade edilir. Paket boyutu, CRC, sequence rollover ve timestamp kaynağı protokol belgesinde kesinleştirilmelidir.
 
 ## Geliştirme sırası
 
-1. Gerçek pinout, besleme ve sensör arayüzlerini doğrula.
-2. Firmware'de tek sensörlü edinim, durum bayrakları ve timestamp testleri.
-3. UART paket formatı, CRC/sequence ve hata enjeksiyonu.
+1. Pinout, güç ve sensör arayüzlerini doğrula.
+2. Firmware'de sensör edinimi, durum bayrakları ve timestamp testleri.
+3. UART/local link paket formatı, CRC/sequence ve hata enjeksiyonu.
 4. SD raw logger ve kayıt tekrar oynatma.
-5. İki Deneyap kartının görev ayrımı ve bus yükü testleri.
-6. Companion host donanımını seç; RAM/CPU/GPU/enerji bütçesini belirle.
-7. C++ validation, windowing ve fusion testleri.
-8. llama.cpp/Gemma model adapter'ı ve gecikme/RAM benchmark'ı.
-9. Yerel link ve daha sonra BLE/MQTT seçeneklerinin ölçümlü karşılaştırması.
-10. Android/iOS arayüzü.
-11. Entegre bench ve saha doğrulaması.
+5. Windows telemetry ingest, deterministic validation/fusion ve Gemma host benchmark'ı.
+6. MQTT broker lifecycle, TLS, ACL, PIN pairing ve credential revoke/rotate.
+7. Telefon uygulaması ve cihaz bazlı provisioning.
+8. Entegre bench testleri, ağ kesintisi/failsafe testleri ve kontrollü saha doğrulaması.
 
 ## Doğrulama
 
-CI derlemesi yalnızca derleme başarısını gösterir. Sensör haberleşmesi, zaman senkronizasyonu, UWB doğruluğu, termal kalibrasyon, akustik/sismik performans ve kişi tespiti etiketli kontrollü testlerle ayrı ayrı doğrulanmalıdır.
+CI derlemesi yalnızca derleme başarısını gösterir. Sensör haberleşmesi, zaman senkronizasyonu, UWB doğruluğu, termal kalibrasyon, akustik/sismik performans, eşleştirme güvenliği ve kişi tespiti başarımı ayrı ve tekrarlanabilir testlerle doğrulanmalıdır.
