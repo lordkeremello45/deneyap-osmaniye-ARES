@@ -65,3 +65,61 @@ func TestBridgeAddressIsLoopbackOnly(t *testing.T) {
 		t.Fatal("expected non-loopback bind to be rejected")
 	}
 }
+
+
+func TestAudioRMSRequiresFreshXVF3800Sample(t *testing.T) {
+	audioState.Lock()
+	audioState.latest = AudioRMS{}
+	audioState.hasData = false
+	audioState.Unlock()
+
+	get := httptest.NewRecorder()
+	newHandler().ServeHTTP(get, httptest.NewRequest(http.MethodGet, "/api/v1/audio", nil))
+	if get.Code != http.StatusServiceUnavailable {
+		t.Fatalf("expected unavailable before sample, got %d", get.Code)
+	}
+
+	sample := map[string]any{
+		"source": "xvf3800_uac2",
+		"captured_at": time.Now().UTC().Format(time.RFC3339Nano),
+		"sample_rate_hz": 16000,
+		"channels": 2,
+		"rms": 0.12,
+		"peak": 0.31,
+	}
+	body, err := json.Marshal(sample)
+	if err != nil {
+		t.Fatal(err)
+	}
+	post := httptest.NewRecorder()
+	newHandler().ServeHTTP(post, httptest.NewRequest(http.MethodPost, "/api/v1/audio/rms", bytes.NewReader(body)))
+	if post.Code != http.StatusAccepted {
+		t.Fatalf("expected accepted sample, got %d: %s", post.Code, post.Body.String())
+	}
+
+	get = httptest.NewRecorder()
+	newHandler().ServeHTTP(get, httptest.NewRequest(http.MethodGet, "/api/v1/audio", nil))
+	if get.Code != http.StatusOK {
+		t.Fatalf("expected fresh sample, got %d: %s", get.Code, get.Body.String())
+	}
+}
+
+func TestAudioRMSRejectsInvalidSamples(t *testing.T) {
+	sample := map[string]any{
+		"source": "xvf3800_uac2",
+		"captured_at": time.Now().UTC().Format(time.RFC3339Nano),
+		"sample_rate_hz": 16000,
+		"channels": 2,
+		"rms": 0.8,
+		"peak": 0.2,
+	}
+	body, err := json.Marshal(sample)
+	if err != nil {
+		t.Fatal(err)
+	}
+	response := httptest.NewRecorder()
+	newHandler().ServeHTTP(response, httptest.NewRequest(http.MethodPost, "/api/v1/audio/rms", bytes.NewReader(body)))
+	if response.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("expected invalid sample rejection, got %d", response.Code)
+	}
+}
