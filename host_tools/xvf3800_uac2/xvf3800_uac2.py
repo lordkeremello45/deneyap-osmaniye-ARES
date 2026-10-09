@@ -36,7 +36,7 @@ def choose_device(selector: str | None):
             elif selector.casefold() in name.casefold():
                 candidates.append((index, device))
         elif any(token in name.casefold() for token in ("xvf3800", "xmos", "vocalfusion")):
-            candidates.append((index, device)
+            candidates.append((index, device))
 
     if len(candidates) != 1:
         available = [
