@@ -53,3 +53,15 @@ func TestTelemetryRejectsNonGetMethod(t *testing.T) {
 		t.Fatalf("Allow = %q, want GET", rec.Header().Get("Allow"))
 	}
 }
+
+func TestBridgeAddressIsLoopbackOnly(t *testing.T) {
+	t.Setenv("ARES_BRIDGE_ADDR", "127.0.0.1:8080")
+	if got, err := bridgeAddress(); err != nil || got != "127.0.0.1:8080" {
+		t.Fatalf("loopback address rejected: got %q, err %v", got, err)
+	}
+
+	t.Setenv("ARES_BRIDGE_ADDR", "0.0.0.0:8080")
+	if _, err := bridgeAddress(); err == nil {
+		t.Fatal("expected non-loopback bind to be rejected")
+	}
+}
