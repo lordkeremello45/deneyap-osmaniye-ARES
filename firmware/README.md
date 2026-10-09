@@ -25,6 +25,10 @@ A compile-only smoke translation unit includes the Lepton and Garmin public head
 - See [sensor library integration notes](../docs/hardware/sensor-libraries.md), [hardware review report](../docs/hardware/review-report-for-teacher.md), and [software status](../docs/software/status.md).
 
 
+## Bare DWM3000 module
+
+Because the project uses the bare DWM3000 module (not the DWM3000EVB), carrier-PCB, power, RF-layout and SPI/GPIO requirements must be resolved before firmware activation. See [bare-module integration plan](../docs/hardware/dwm3000-bare-module-integration.md).
+
 ## Driver implementation
 
 The current guarded acquisition layer and its hardware enablement/verification gates are documented in [sensor-driver implementation](../docs/hardware/sensor-driver-implementation.md). The safe default leaves GPIO-dependent drivers disabled until the physical board revision and wiring are verified. DWM3000 and XVF3800 deliberately report `not_integrated`; they must not be treated as operational.
