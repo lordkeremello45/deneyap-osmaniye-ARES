@@ -1,2 +1,5 @@
 # Website is a deployable artifact, not the application stack.
 site/** linguist-vendored
+
+# Go formatting checks must be stable across Windows and Unix runners.
+*.go text eol=lf
