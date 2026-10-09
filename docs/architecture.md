@@ -1,82 +1,97 @@
 # ARES Yazılım ve Sistem Mimarisi
 
-Repository görev bazlıdır. HWcontrol2.0'dan alınan temel prensipler; servis ayrımı, telemetry doğrulama, health/fail-safe, authenticated IPC ve deterministik AI ön işleme olarak uygulanır.
+## Uygulama aşaması
 
-## Ana omurga
+Öncelik şu anda **Deneyap Kart V2 firmware'i, sensör veri edinimi ve doğrulanabilir telemetry sözleşmesidir**. Mobil uygulama henüz geliştirme odağı değildir. Bluetooth/Deneyap BT veya MQTT seçimi sonraki aşamaya bırakılmıştır; bağlantı kararı ölçüm ve menzil testleriyle verilecektir.
 
-DRONE -> drone_telemetry -> validation -> raw storage + AI Core -> Go Bridge -> Android Controller
+## Hedef veri hattı
 
-## Katmanlar
+```text
+Sensors
+  ↓
+Deneyap Kart V2 / ESP32 node(s)
+  - sensor acquisition
+  - timestamps, sequence numbers, status/quality flags
+  - basic range/finite checks
+  - buffering and SD/raw logging where appropriate
+  ↓ UART or a separately validated local link
+Companion host computer (hardware TBD)
+  - packet validation and raw recorder/replay
+  - filtering, windowing, feature extraction, sensor fusion
+  - Gemma 4 E2B Q5_K_M via llama.cpp
+  ↓ structured advisory result
+Future transport/interface (TBD)
+  - Deneyap BT/BLE or MQTT over Wi-Fi
+  - later Android/iOS controller
+```
 
-### drone_telemetry
-Sistemin sürekli veri giriş katmanıdır. Sensör verisini alır, paketler, CRC/sequence/timestamp/range doğrulaması yapar, raw kayıt için ayırır ve doğrulanmış feature'ları AI Core'a aktarır.
+Bu şema hedef mimaridir; henüz çalışan, uçtan uca entegre edilmiş bir sistem olarak değerlendirilmemelidir. Companion host donanımı henüz seçilmemiştir.
 
-### drone
-Uçuş ve güç sınırıdır. Flight controller, motor/ESC telemetry, güç telemetry, safety ve failsafe burada kalır. AI Core uçuş komutu sahibi değildir.
+## Katman sorumlulukları
 
-### ai_core
-C++20/CMake analiz katmanıdır:
+### Firmware / telemetry
 
-validated telemetry -> filtering -> time window -> sensor fusion -> feature extraction -> risk/detection -> Gemma -> structured result
+Deneyap Kart V2 sensör okumalarını edinir, her ölçüme timestamp/sequence ve validity/status bilgisi ekler, veri sınırlarını kontrol eder ve veri kaybını görünür kılar. İki kartın görev dağılımı sensör bus'ları, GPIO ve zamanlama doğrulamasından sonra belirlenir. Firmware Gemma ağırlıklarını çalıştırmaz.
 
-### bridge
-Go servis katmanıdır. Telemetry routing, C++ IPC, Android API/WebSocket, HMAC authentication, nonce/replay protection, health, diagnostics, backpressure ve logging burada bulunur.
+### Raw storage and replay
 
-### controller/android
-Flutter/Dart tabanlı Android operatör uygulamasıdır. Canlı telemetry, termal görünüm, harita, aday hedefler, health, uyarılar ve mission state gösterilir.
+Ham ölçümler ve türetilmiş özellikler birbirinden ayrılır. Ham kayıtlar kalibrasyon, model karşılaştırması ve hata ayıklama için korunur. SD kart yazımı veri kaybı ve zamanlama açısından test edilir.
 
-### storage
-Raw telemetry ve mission loglarını AI sonuçlarından ayrı tutar.
+### Companion host / AI Core
 
-### website/astro
-Resmi ARES web sitesidir ve drone çalışma zamanından bağımsızdır.
+C++ AI Core, ESP32'nin dışında çalışacak bir host bilgisayar hedefler. İşlem hattı:
 
-## Telemetry mesaj sözleşmesi
+`validated telemetry → time alignment/windowing → feature extraction → deterministic sensor fusion → Gemma 4 E2B Q5_K_M → versioned result`
 
+Model girişine bütün ham yüksek hızlı akışları kontrolsüz şekilde yığmak yerine doğrulanmış özellikler, sensör kalite bayrakları ve gerekiyorsa seçilmiş görüntü/akustik segmentleri verilir. Gemma çoklu sensör kanıtlarını yorumlayan katmandır; deterministik kontrollerin ve ham kayıtların yerini almaz. Model sonucu güven düzeyi ve kanıt kaynaklarıyla birlikte raporlanmalı, doğrulanmamış olasılıklar gerçek tespit olarak sunulmamalıdır.
+
+### Gemma ve güvenlik sınırı
+
+Gemma 4 E2B Q5_K_M GGUF yaklaşık 3,66 GB sınıfındadır ve ESP32/Deneyap Kart V2 üzerinde çalıştırılmak üzere seçilmemiştir. `llama.cpp` çalıştırabilecek yeterli RAM ve işlem gücüne sahip companion host gereklidir. Host seçimi ve model benchmark'ı açık gereksinimlerdir.
+
+Gemma hiçbir koşulda motor PWM, flight stabilization veya donanımsal failsafe üzerinde doğrudan kontrol sahibi değildir. Bu fonksiyonlar deterministik, test edilebilir kontrol sistemlerinde kalır.
+
+### İletişim ve gelecek mobil katmanı
+
+- İlk etapta ESP32 telemetry'sini USB/UART/seri günlükleriyle doğrula.
+- Companion host bağlantısı için UART veya başka bir yerel link yalnızca elektriksel/performans testlerinden sonra sabitlenir.
+- Mobil operatör arayüzü daha sonraki aşamadır.
+- Deneyap BT/BLE ve MQTT alternatifleridir, kesin karar değildir. BLE düşük hacimli yakın alan telemetrisi için; MQTT ise Wi-Fi/IP ağı, broker güvenliği ve bağlantı sürekliliği gerektiğinde değerlendirilebilir. Nihai seçim güç, gecikme, menzil, paket kaybı ve saha ağ koşullarına göre yapılır.
+
+## Telemetry mesaj sözleşmesi taslağı
+
+```json
 {
   "version": 1,
+  "node_id": "deneyap-1",
   "sequence": 18452,
   "timestamp_ms": 1780000123456,
-  "thermal": {"anomaly_c": 3.2, "hot_pixel_count": 14},
-  "uwb_distance_m": 4.2,
-  "acoustic": {"rms": 0.031, "peak": 0.18},
-  "seismic": {"rms": 0.021, "peak": 0.09},
-  "lidar_distance_m": 8.0
+  "sensors": {
+    "thermal": {"status": "valid", "anomaly_c": 3.2},
+    "uwb": {"status": "unavailable", "distance_m": null},
+    "acoustic": {"status": "valid", "rms": 0.031},
+    "seismic": {"status": "valid", "rms": 0.021},
+    "lidar": {"status": "valid", "distance_m": 8.0}
+  }
 }
+```
 
-Bu paket AI'a doğrudan verilmez. Validator kabulünden sonra feature pipeline'a girer.
-
-## Güvenlik
-
-Hassas IPC/komutlar: HMAC-SHA-256, timestamp window, nonce, replay cache, request size/rate limits ve fail-closed hardware control.
-
-Telemetry: CRC, sequence, timestamp, finite/range validation, source identity ve sensor quality.
-
-## Health
-
-SAFE -> SEARCHING -> POSSIBLE_TARGET -> WARNING -> CRITICAL -> FAIL_SAFE
-
-Sensör bulunamazsa değer uydurulmaz; unavailable/degraded olarak raporlanır.
-
-## Ham veri ilkesi
-
-Sensors -> telemetry -> validation -> AI Core
-             |
-             -> storage/replay
-
-AI sonucu raw telemetry'nin yerine geçmez.
+Bu şema örnektir; firmware'de uygulanmış protokol olduğu iddia edilmez. Eksik veya geçersiz sensör değerleri uydurulmaz; `null`/status ile ifade edilir. Paket boyutu, endian, CRC, sequence rollover ve timestamp kaynağı protokol belgesinde kesinleştirilmelidir.
 
 ## Geliştirme sırası
 
-1. Drone telemetry protocol
-2. CRC/sequence/timestamp validation
-3. Raw recorder/replay
-4. Sensor drivers
-5. C++ fusion/risk engine
-6. Gemma/llama.cpp
-7. Go Bridge authenticated IPC
-8. Android Controller
-9. Firebase cloud automation
-10. Astro website
-11. Bench/regression tests
-12. Controlled field validation
+1. Gerçek pinout, besleme ve sensör arayüzlerini doğrula.
+2. Firmware'de tek sensörlü edinim, durum bayrakları ve timestamp testleri.
+3. UART paket formatı, CRC/sequence ve hata enjeksiyonu.
+4. SD raw logger ve kayıt tekrar oynatma.
+5. İki Deneyap kartının görev ayrımı ve bus yükü testleri.
+6. Companion host donanımını seç; RAM/CPU/GPU/enerji bütçesini belirle.
+7. C++ validation, windowing ve fusion testleri.
+8. llama.cpp/Gemma model adapter'ı ve gecikme/RAM benchmark'ı.
+9. Yerel link ve daha sonra BLE/MQTT seçeneklerinin ölçümlü karşılaştırması.
+10. Android/iOS arayüzü.
+11. Entegre bench ve saha doğrulaması.
+
+## Doğrulama
+
+CI derlemesi yalnızca derleme başarısını gösterir. Sensör haberleşmesi, zaman senkronizasyonu, UWB doğruluğu, termal kalibrasyon, akustik/sismik performans ve kişi tespiti etiketli kontrollü testlerle ayrı ayrı doğrulanmalıdır.
