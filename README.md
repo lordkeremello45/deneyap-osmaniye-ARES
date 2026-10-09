@@ -80,3 +80,9 @@ ARES prototiptir. Sensör sonuçları operatör destek verisidir ve gerçek aram
 - [Source bibliography](source.md) — consolidated hardware/materials inventory, official datasheets, software dependencies, and open verification items.
 - [GitHub contributors graph](https://github.com/lordkeremello45/deneyap-osmaniye-ARES/graphs/contributors) — contributions recorded by GitHub.
 
+
+
+## Engineering status
+
+- [Hardware review report](docs/hardware/review-report-for-teacher.md)
+- [Software status and integration gates](docs/software/status.md)
