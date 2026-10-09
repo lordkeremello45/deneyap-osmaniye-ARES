@@ -1,6 +1,6 @@
 # ARES Donanım İnceleme Raporu
 
-**Hedef kitle:** Donanım sorumlusu / öğretmen incelemesi  
+**Hedef kitle:** Aslı Öğretmen ve donanım ekibi  
 **Tarih:** 10 Ekim 2026  
 **Durum:** Ön inceleme; uçuşa uygunluk onayı değildir  
 **Kaynak ana dosya:** [source.md](../../source.md)  
