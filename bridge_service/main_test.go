@@ -74,7 +74,6 @@ func TestBridgeAddressIsLoopbackOnly(t *testing.T) {
 	}
 }
 
-
 func TestAudioRMSRequiresFreshXVF3800Sample(t *testing.T) {
 	t.Setenv("ARES_BRIDGE_TOKEN", "test-token-that-is-at-least-32-chars")
 	audioState.Lock()
