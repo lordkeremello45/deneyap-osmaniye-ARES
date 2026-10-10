@@ -43,6 +43,7 @@ jobs:
           files="$(gofmt -l .)"
           if [ -n "$files" ]; then
             printf 'Unformatted Go files:\n%s\n' "$files"
+            gofmt -d .
             exit 1
           fi
       - name: Test
