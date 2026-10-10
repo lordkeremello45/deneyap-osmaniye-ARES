@@ -53,7 +53,7 @@ void loop() {
   if (uint32_t(now - last) >= kPeriodMs) {
     last = now;
     HardwareSerial& out = telemetryPort();
-    out.print(F("{\"type\":\"sensor_status\",\"timestamp_ms\":"));
+    out.print(F("{\"type\":\"sensor_status\",\"version\":1,\"timestamp_ms\":"));
     out.print(now);
     out.print(',');
     field("lepton_tlinear_raw", data.lepton_tlinear_raw); out.print(',');
