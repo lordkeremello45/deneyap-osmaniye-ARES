@@ -49,7 +49,7 @@ type AudioRMS struct {
 
 var audioState struct {
 	sync.RWMutex
-	latest AudioRMS
+	latest  AudioRMS
 	hasData bool
 }
 
