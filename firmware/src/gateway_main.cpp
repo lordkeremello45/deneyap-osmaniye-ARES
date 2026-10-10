@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <cstring>
 #include <ArduinoJson.h>
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
@@ -55,7 +56,7 @@ bool discardUntilNewline = false;
 
 bool validTelemetryFrame(const char* payload) {
   JsonDocument document;
-  const DeserializationError error = deserializeJson(document, payload, kMaxFrame);
+  const DeserializationError error = deserializeJson(document, payload);
   if (error || !document["type"].is<const char*>() ||
       strcmp(document["type"].as<const char*>(), "sensor_status") != 0 ||
       !document["timestamp_ms"].is<uint32_t>()) {
@@ -124,6 +125,7 @@ void setup() {
   mqttClient.setServer(ARES_MQTT_HOST, 8883);
   mqttClient.setBufferSize(kMaxFrame + 128);
   WiFi.mode(WIFI_STA);
+  WiFi.setAutoReconnect(true);
   WiFi.begin(ARES_WIFI_SSID, ARES_WIFI_PASSWORD);
   Serial.println("ARES gateway: Wi-Fi/MQTT TLS enabled; publishing telemetry only.");
 #else
