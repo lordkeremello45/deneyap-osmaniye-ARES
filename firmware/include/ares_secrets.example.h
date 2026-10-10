@@ -13,7 +13,7 @@
 // #define ARES_MQTT_USERNAME "unique_device_username"
 // #define ARES_MQTT_PASSWORD "unique_random_device_secret"
 // #define ARES_MQTT_CLIENT_ID "ares-card1-unique-id"
-// #define ARES_MQTT_ROOT_CA R"ARES_CA(-----BEGIN CERTIFICATE-----
-// REPLACE_WITH_REVIEWED_PUBLIC_ROOT_CA
-// -----END CERTIFICATE-----
-// )ARES_CA"
+// #define ARES_MQTT_ROOT_CA \\
+//   "-----BEGIN CERTIFICATE-----\\n" \\
+//   "REPLACE_WITH_REVIEWED_CA_BODY\\n" \\
+//   "-----END CERTIFICATE-----\\n"
