@@ -1,10 +1,20 @@
 #include <Arduino.h>
 #include "sensor_drivers.h"
-static const uint32_t kBaud=921600, kPeriodMs=1000;
+#if __has_include("ares_board_config.h")
+#include "ares_board_config.h"
+#endif
+static const uint32_t kBaud=115200, kPeriodMs=1000;
 namespace {
 ares::sensors::Snapshot data;
+HardwareSerial& telemetryPort() {
+#if defined(ARES_LINK_RX_PIN) && defined(ARES_LINK_TX_PIN)
+  return Serial2;
+#else
+  return Serial;
+#endif
+}
 void field(const char* n,const ares::sensors::Reading& r) {
-  Serial.print('"'); Serial.print(n); Serial.print(F("\":{\"status\":\""));
+  telemetryPort().print('"'); telemetryPort().print(n); Serial.print(F("\":{\"status\":\""));
   Serial.print(ares::sensors::statusName(r.status)); Serial.print(F("\",\"valid\":"));
   Serial.print(r.valid?F("true"):F("false")); Serial.print(F(",\"timestamp_ms\":"));
   Serial.print(r.timestamp_ms); Serial.print(F(",\"value\":")); Serial.print(r.value); Serial.print('}');
@@ -14,7 +24,7 @@ void setup() {
   Serial.begin(kBaud); uint32_t start=millis();
   while(!Serial && uint32_t(millis()-start)<1500U) delay(10);
   ares::sensors::begin();
-  Serial.println(F("{\"type\":\"ares_firmware\",\"version\":1,\"state\":\"started\"}"));
+  telemetryPort().println(F("{\"type\":\"ares_firmware\",\"version\":1,\"state\":\"started\"}"));
 }
 void loop() {
   ares::sensors::poll(data); static uint32_t last=0; uint32_t now=millis();
