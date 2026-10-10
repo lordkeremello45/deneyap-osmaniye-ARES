@@ -59,6 +59,7 @@ bool validTelemetryFrame(const char* payload) {
   const DeserializationError error = deserializeJson(document, payload);
   if (error || !document["type"].is<const char*>() ||
       strcmp(document["type"].as<const char*>(), "sensor_status") != 0 ||
+      document["version"].as<int>() != 1 ||
       !document["timestamp_ms"].is<uint32_t>()) {
     return false;
   }
