@@ -5,17 +5,18 @@ This agent is for the **XMOS XVF3800 UA/USB firmware configuration** connected t
 ## Setup
 
 1. Confirm the physical hardware is a supported XVF3800 evaluation/production assembly with UA/UAC2 firmware. The XMOS firmware image selects USB or I²S at build time; these modes are not runtime-switchable.
-2. Start the ARES Go bridge on the same computer. It binds to `127.0.0.1:8080` by default.
-3. Install Python 3.10+ and dependencies:
+2. Generate a random bridge token (at least 32 characters) and set `ARES_BRIDGE_TOKEN` in both the bridge process and this agent's environment. The bridge refuses to start without it. Never commit the token or put it in logs.
+3. Start the ARES Go bridge on the same computer. It binds to `127.0.0.1:8080` by default.
+4. Install Python 3.10+ and dependencies:
 
    ```sh
    python -m pip install -r requirements.txt
    python xvf3800_uac2.py --list
    ```
 
-4. Set `ARES_XVF3800_DEVICE` to the exact device index or a unique substring from the listed device names. The script intentionally refuses to capture an arbitrary microphone.
-5. Set `ARES_XVF3800_SAMPLE_RATE` to the firmware's configured rate (default 16000 Hz), and optionally set `ARES_XVF3800_CHANNELS` (default: up to four available input channels).
-6. Run `python xvf3800_uac2.py`.
+5. Set `ARES_XVF3800_DEVICE` to the exact device index or a unique substring from the listed device names. The script intentionally refuses to capture an arbitrary microphone.
+6. Set `ARES_XVF3800_SAMPLE_RATE` to the firmware's configured rate (default 16000 Hz), and optionally set `ARES_XVF3800_CHANNELS` (default: up to four available input channels).
+7. Run `python xvf3800_uac2.py`.
 
 Example PowerShell:
 
@@ -28,7 +29,7 @@ python .\xvf3800_uac2.py
 ## Data and safety
 
 - The agent computes normalized aggregate RMS and peak from each audio block. It does not save raw audio or upload raw audio.
-- The agent posts one summary to `POST /api/v1/audio/rms`; `GET /api/v1/audio` returns the latest summary while it is fresh (3 seconds).
+- The agent posts one summary to `POST /api/v1/audio/rms` using bearer-token authentication and refuses non-loopback destinations; `GET /api/v1/audio` returns the latest summary while it is fresh (3 seconds).
 - A fresh summary is **not** evidence of a trapped person. Acoustic features require separate signal-processing design, calibration and validation.
-- The Go bridge remains loopback-only. Do not expose it to a network without authentication and transport security.
+- The Go bridge remains loopback-only, requires a bearer token of at least 32 characters for data APIs, and applies request limits/timeouts. Do not expose it to a network; remote access needs a separate authenticated TLS design.
 - If the UAC2 device's sample rate/channel layout differs from the configured values, set the environment variables to the exact firmware configuration. Do not guess channel layout based on microphone count.
