@@ -50,6 +50,8 @@ def main() -> int:
 
     roles = ("card1", "card2") if args.role == "both" else (args.role,)
     OUTPUT.mkdir(parents=True, exist_ok=True)
+    manifest_path = OUTPUT / "manifest.json"
+    manifest_path.unlink(missing_ok=True)
     manifest = {
         "project": "ARES",
         "built_at_utc": datetime.now(timezone.utc).isoformat(),
@@ -82,7 +84,6 @@ def main() -> int:
         })
         print(f"Artifact: {destination} ({destination.stat().st_size} bytes)")
 
-    manifest_path = OUTPUT / "manifest.json"
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     print(f"Build manifest: {manifest_path}")
     print("Build artifacts are compiled binaries only; this tool does not flash hardware.")
