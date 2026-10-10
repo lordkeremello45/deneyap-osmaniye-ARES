@@ -1,51 +1,260 @@
 <!doctype html>
 <html lang="tr">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="ARES — Deneyap Osmaniye enkaz arama prototipi">
-<title>ARES | Deneyap Osmaniye</title>
-<style>
-:root{color-scheme:dark;--bg:#0b1220;--panel:#131e30;--line:#263750;--text:#eef4ff;--muted:#a9bad0;--accent:#55d6be}
-*{box-sizing:border-box}
-body{margin:0;background:radial-gradient(ellipse at 80% 0%,#17334a,transparent 45%),var(--bg);color:var(--text);font:16px/1.6 system-ui,sans-serif}
-main{max-width:1000px;margin:auto;padding:48px 22px}
-header{padding:38px 0}
-h1{font-size:clamp(3rem,9vw,6rem);line-height:1;margin:0;color:var(--accent);letter-spacing:-.06em}
-h2{margin-top:0}
-p{color:var(--muted)}
-.tag{display:inline-block;border:1px solid var(--line);border-radius:99px;padding:5px 12px;color:var(--accent);margin:6px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px}
-a{color:var(--accent)}
-footer{border-top:1px solid var(--line);margin-top:36px;padding-top:18px;color:var(--muted);font-size:.9rem}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101a23">
+  <meta name="description" content="ARES, Osmaniye'de geliştirilen; termal, akustik, sismik ve mesafe sensörlerini birleştirerek enkaz arama çalışmalarına operatör desteği sağlamayı amaçlayan arama-kurtarma UAV prototipidir.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="ARES | Enkaz Arama ve Kurtarma Teknolojileri">
+  <meta property="og:description" content="Çoklu sensör, güvenilir veri ve insan odaklı mühendislik. Deneyap Osmaniye araştırma prototipi.">
+  <title>ARES — Enkaz Arama ve Kurtarma Teknolojileri</title>
+  <style>
+    :root{color-scheme:dark;--bg:#0d151c;--bg2:#111e27;--panel:#172630;--panel2:#1c303b;--line:#304650;--text:#f2f5f2;--muted:#b2c0c4;--orange:#ff6b3d;--orange2:#ff9b66;--teal:#65d9c4;--max:1160px;--radius:18px;--shadow:0 24px 70px #0003}
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth;scroll-padding-top:86px}
+    body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    a{color:inherit}
+    a:focus-visible,button:focus-visible{outline:3px solid var(--teal);outline-offset:4px}
+    .wrap{width:min(var(--max),calc(100% - 40px));margin-inline:auto}
+    .skip{position:absolute;left:-9999px;top:12px;z-index:10;background:var(--text);color:var(--bg);padding:10px 14px;border-radius:8px}.skip:focus{left:12px}
+    .topline{height:4px;background:linear-gradient(90deg,var(--orange) 0 22%,#2d4c57 22% 100%)}
+    .nav-shell{position:sticky;top:0;z-index:5;background:#0d151ceF;border-bottom:1px solid #ffffff12;backdrop-filter:blur(16px)}
+    nav{min-height:76px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+    .brand{display:flex;align-items:center;gap:12px;text-decoration:none;font-weight:800;letter-spacing:.12em}
+    .brand-mark{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:var(--orange);color:#171d20}
+    .brand small{display:block;color:var(--muted);font-size:.66rem;letter-spacing:.14em;font-weight:650}
+    .nav-links{display:flex;align-items:center;gap:25px}
+    .nav-links a{font-size:.88rem;color:var(--muted);text-decoration:none}
+    .nav-links a:hover{color:var(--text)}
+    .nav-cta,.button{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:12px 17px;border-radius:10px;background:var(--orange);color:#171d20;text-decoration:none;font-weight:800;border:1px solid transparent;transition:transform .18s ease,background .18s ease}
+    .nav-cta:hover,.button:hover{transform:translateY(-2px);background:var(--orange2)}
+    .button.secondary{background:transparent;border-color:#62737a;color:var(--text)}
+    .button.secondary:hover{background:#ffffff0d}
+    .eyebrow{display:inline-flex;align-items:center;gap:9px;color:var(--orange2);font-size:.77rem;font-weight:800;letter-spacing:.15em;text-transform:uppercase}
+    .dot{width:8px;height:8px;border-radius:50%;background:var(--teal);box-shadow:0 0 0 5px #65d9c41c}
+    .hero{padding:82px 0 76px;position:relative;overflow:hidden;background:radial-gradient(ellipse at 83% 36%,#23404b8a,transparent 44%),linear-gradient(180deg,#101a23,#0d151c)}
+    .hero-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:52px;align-items:center}
+    h1{font-size:clamp(3.3rem,7.4vw,6.4rem);letter-spacing:-.075em;line-height:.98;margin:22px 0 25px;max-width:760px}
+    h1 em{font-style:normal;color:var(--orange)}
+    .lead{font-size:clamp(1.08rem,1.8vw,1.28rem);color:#c0cdd0;max-width:630px}
+    .hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+    .hero-note{display:flex;gap:12px;align-items:flex-start;margin-top:28px;color:var(--muted);font-size:.87rem;max-width:590px}
+    .hero-note svg{flex:0 0 auto;color:var(--teal);margin-top:3px}
+    .visual{position:relative;min-height:440px;border:1px solid #48606b;border-radius:26px;overflow:hidden;background:linear-gradient(145deg,#1d3540,#101c24 70%);box-shadow:var(--shadow)}
+    .visual:before,.visual:after{content:"";position:absolute;border:1px solid #5c7a834d;border-radius:50%;width:310px;height:310px;left:50%;top:46%;transform:translate(-50%,-50%)}
+    .visual:after{width:215px;height:215px}
+    .grid-lines{position:absolute;inset:0;opacity:.24;background-image:linear-gradient(#6b8a9433 1px,transparent 1px),linear-gradient(90deg,#6b8a9433 1px,transparent 1px);background-size:32px 32px;mask-image:linear-gradient(transparent,#000 25%,#000 75%,transparent)}
+    .crosshair{position:absolute;left:50%;top:46%;width:1px;height:75%;background:#8ba6ac42;transform:translate(-50%,-50%)}
+    .crosshair:after{content:"";position:absolute;top:50%;left:-155px;width:310px;height:1px;background:#8ba6ac42}
+    .drone{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);width:210px;height:145px;z-index:1}
+    .drone svg{width:100%;height:100%;filter:drop-shadow(0 12px 20px #0007)}
+    .scan{position:absolute;left:50%;top:46%;width:260px;height:260px;transform:translate(-50%,-50%);border:1px solid #ff6b3d80;border-radius:50%;animation:scan 5s linear infinite}
+    .scan:before{content:"";position:absolute;left:50%;top:50%;width:50%;height:1px;transform-origin:left;background:linear-gradient(90deg,var(--orange),transparent);transform:rotate(-35deg)}
+    @keyframes scan{to{transform:translate(-50%,-50%) rotate(360deg)}}
+    .hud{position:absolute;z-index:2;border:1px solid #5c7780;background:#0d181dd9;border-radius:12px;padding:11px 13px;font-size:.76rem;box-shadow:0 12px 30px #0002}
+    .hud strong{display:block;font-size:.9rem;color:var(--text);letter-spacing:.02em}
+    .hud span{color:var(--muted)}
+    .hud.top{top:20px;left:20px}.hud.bottom{bottom:20px;right:20px}.hud.left{bottom:24px;left:20px}
+    .signal{display:inline-block;width:7px;height:7px;background:var(--teal);border-radius:50%;margin-right:6px}
+    .section{padding:82px 0}
+    .section.alt{background:#111d25;border-block:1px solid #ffffff0b}
+    .section-head{max-width:730px;margin-bottom:35px}
+    .section-head h2{font-size:clamp(2rem,4vw,3.4rem);letter-spacing:-.055em;line-height:1.08;margin:12px 0 14px}
+    .section-head p{color:var(--muted);margin:0;font-size:1.05rem}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:-1px}
+    .stat{padding:22px;border:1px solid var(--line);background:#14232c}
+    .stat:first-child{border-radius:14px 0 0 14px}.stat:last-child{border-radius:0 14px 14px 0}
+    .stat strong{font-size:1.12rem;display:block}.stat span{font-size:.82rem;color:var(--muted)}
+    .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .card{background:linear-gradient(150deg,#192b35,#14222b);border:1px solid var(--line);border-radius:var(--radius);padding:25px;min-height:220px}
+    .icon{width:46px;height:46px;border:1px solid #ff6b3d66;background:#ff6b3d13;color:var(--orange);border-radius:13px;display:grid;place-items:center;margin-bottom:22px}
+    .card h3{font-size:1.12rem;margin:0 0 9px}
+    .card p{color:var(--muted);margin:0;font-size:.94rem}
+    .process{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+    .step{padding:25px 22px;background:var(--panel);border-right:1px solid var(--line)}
+    .step:last-child{border:0}
+    .num{font-size:.75rem;color:var(--orange);font-weight:900;letter-spacing:.14em}
+    .step h3{margin:12px 0 8px;font-size:1.05rem}.step p{margin:0;color:var(--muted);font-size:.9rem}
+    .architecture{display:grid;grid-template-columns:.8fr 1.2fr;gap:30px;align-items:start}
+    .architecture-copy p{color:var(--muted)}
+    .architecture-copy .button{margin-top:10px}
+    .stack{display:grid;gap:10px}
+    .stack-item{display:grid;grid-template-columns:44px 1fr;gap:15px;align-items:center;padding:17px 19px;background:var(--panel);border:1px solid var(--line);border-radius:13px}
+    .stack-item .n{display:grid;place-items:center;width:38px;height:38px;border-radius:10px;background:#ff6b3d18;color:var(--orange);font-weight:900}
+    .stack-item strong{display:block}.stack-item span{font-size:.86rem;color:var(--muted)}
+    .stack-arrow{height:14px;margin-left:37px;border-left:1px dashed #78919a}
+    .safety{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    .safety-card{padding:25px;border-radius:var(--radius);border:1px solid var(--line);background:var(--panel)}
+    .safety-card h3{margin:0 0 12px}.safety-card p,.safety-card li{color:var(--muted);font-size:.93rem}
+    .safety-card ul{padding-left:20px;margin-bottom:0}
+    .status{display:flex;gap:14px;align-items:flex-start;padding:20px;border:1px solid #ff9b6655;border-radius:14px;background:#ff6b3d0d;margin-top:22px}
+    .status .mark{color:var(--orange);font-size:1.4rem;font-weight:900}
+    .status p{margin:3px 0 0;color:var(--muted);font-size:.93rem}
+    .contact{padding:48px;border-radius:24px;border:1px solid #4b6068;background:radial-gradient(ellipse at 100% 0%,#294651,transparent 55%),#162630;display:flex;justify-content:space-between;align-items:center;gap:28px}
+    .contact h2{font-size:clamp(2rem,4vw,3rem);line-height:1.1;letter-spacing:-.05em;margin:12px 0}
+    .contact p{max-width:610px;color:var(--muted);margin-bottom:0}
+    .contact-actions{display:flex;flex-direction:column;gap:10px;min-width:210px}
+    footer{padding:30px 0 42px;border-top:1px solid #ffffff14;color:var(--muted);font-size:.84rem}
+    .footer-row{display:flex;justify-content:space-between;gap:24px;align-items:flex-start}
+    .footer-links{display:flex;flex-wrap:wrap;gap:16px}.footer-links a{color:var(--muted)}
+    @media(max-width:900px){.hero-grid{grid-template-columns:1fr;gap:35px}.visual{min-height:390px}.cards{grid-template-columns:repeat(2,1fr)}.process{grid-template-columns:repeat(2,1fr)}.step:nth-child(2){border-right:0}.step:nth-child(-n+2){border-bottom:1px solid var(--line)}.architecture{grid-template-columns:1fr}.contact{align-items:flex-start;flex-direction:column}.contact-actions{flex-direction:row;flex-wrap:wrap}}
+    @media(max-width:650px){.wrap{width:min(var(--max),calc(100% - 28px))}nav{min-height:68px}.nav-links{gap:12px}.nav-links a:not(.nav-cta){display:none}.nav-cta{padding:10px 12px;font-size:.8rem}.brand-mark{width:38px;height:38px}.hero{padding:58px 0 48px}h1{font-size:clamp(3.1rem,16vw,5rem)}.visual{min-height:345px}.drone{width:170px}.visual:before{width:260px;height:260px}.visual:after{width:175px;height:175px}.scan{width:215px;height:215px}.hud{font-size:.68rem;padding:8px 10px}.hud strong{font-size:.8rem}.section{padding:60px 0}.stats{grid-template-columns:repeat(2,1fr)}.stat,.stat:first-child,.stat:last-child{border-radius:10px}.cards{grid-template-columns:1fr}.card{min-height:0}.process{grid-template-columns:1fr}.step,.step:nth-child(2){border-right:0;border-bottom:1px solid var(--line)}.step:last-child{border-bottom:0}.safety{grid-template-columns:1fr}.contact{padding:28px 22px}.contact-actions{flex-direction:column;width:100%}.contact-actions .button{width:100%}.footer-row{flex-direction:column}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+  </style>
 </head>
 <body>
-<main>
-<header>
-<span class="tag">Deneyap Osmaniye</span><span class="tag">Araştırma · Prototip</span>
-<h1>ARES</h1>
-<h2>Drone destekli enkaz arama ve kurtarma</h2>
-<p>Çoklu sensör verisini güvenilir biçimde toplayıp operatöre anlaşılır durum bilgisi sunmayı hedefleyen mühendislik prototipi.</p>
-</header>
-<section class="grid">
-<article class="card"><h2>İşlem</h2><p>İki Deneyap Kart V2, eşit düğümlü çift yönlü UART ve yerel kayıt.</p></article>
-<article class="card"><h2>Algılama</h2><p>FLIR Lepton 3.5, Qorvo DWM3000, XMOS XVF3800, Geospace GS-One LF ve Garmin LIDAR-Lite v3; entegrasyon doğrulaması sürmektedir.</p></article>
-<article class="card"><h2>Güç ve mekanik</h2><p>Regüle mantık beslemesi, motor/aviyonik güç ayrımı, kompozit gövde ve pervane koruması.</p></article>
-</section>
-<section class="card" style="margin-top:16px">
-<h2>Geliştirme aşamaları</h2>
-<ol><li>Gereksinim ve risk analizi</li><li>Donanım araştırma ve eleme</li><li>UART protokolü ve iki kart testleri</li><li>Sensör sürücüleri ve veri füzyonu</li><li>Güç/mekanik doğrulama</li><li>Kontrollü saha testleri</li></ol>
-</section>
-<section class="card" style="margin-top:16px">
-<h2>Kaynaklar</h2>
-<p><a href="https://github.com/lordkeremello45/deneyap-osmaniye-ARES">GitHub deposu ve kaynak kodu</a> · <a href="https://github.com/lordkeremello45/deneyap-osmaniye-ARES/blob/main/LICENSE-AGPL-3.0">AGPLv3 lisansı</a> · <a href="https://github.com/lordkeremello45/deneyap-osmaniye-ARES/blob/main/docs/architecture.md">Mimari</a> · <a href="https://github.com/lordkeremello45/deneyap-osmaniye-ARES/blob/main/docs/protocol/uart-peer.md">UART protokolü</a></p>
-</section>
-<footer>
-<p>ARES prototiptir; profesyonel ekiplerin ve sertifikalı sistemlerin yerine geçmez. Algılama çıktıları doğrulama gerektiren operatör destek verileridir.</p>
-<p>Bu web sitesi kaynak kodu AGPLv3 kapsamında sunulur. Garanti verilmez. <a href="https://www.gnu.org/licenses/agpl-3.0.html">Lisans metni</a> · <a href="https://github.com/lordkeremello45/deneyap-osmaniye-ARES">Kaynak kodu</a></p>
-</footer>
-</main>
+  <a class="skip" href="#icerik">Ana içeriğe geç</a>
+  <div class="topline"></div>
+  <div class="nav-shell">
+    <nav class="wrap" aria-label="Ana menü">
+      <a class="brand" href="#anasayfa" aria-label="ARES ana sayfa">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="27" height="27" viewBox="0 0 32 32" fill="none"><path d="M16 3 29 27H3L16 3Z" stroke="currentColor" stroke-width="2.5"/><path d="M16 12 22 24H10L16 12Z" fill="currentColor"/></svg>
+        </span>
+        <span>ARES<small>DENeyap OSMANİYE</small></span>
+      </a>
+      <div class="nav-links">
+        <a href="#amac">Misyon</a><a href="#teknoloji">Teknoloji</a><a href="#mimari">Sistem</a><a href="#guvenlik">Güvenlik</a>
+        <a class="nav-cta" href="#iletisim">Projeyi incele <span aria-hidden="true">↗</span></a>
+      </div>
+    </nav>
+  </div>
+  <main id="icerik">
+    <section class="hero" id="anasayfa">
+      <div class="wrap hero-grid">
+        <div>
+          <span class="eyebrow"><span class="dot"></span> İnsan odaklı arama-kurtarma araştırması</span>
+          <h1>Enkazda her<br>veri <em>önemli.</em></h1>
+          <p class="lead">ARES; termal, akustik, sismik ve mesafe sensörlerinden gelen verileri bir araya getirerek enkaz arama çalışmalarında görevli ekiplere karar desteği sunmayı hedefleyen insansız hava aracı prototipidir.</p>
+          <div class="hero-actions">
+            <a class="button" href="#amac">Misyonumuzu keşfet <span aria-hidden="true">↓</span></a>
+            <a class="button secondary" href="https://github.com/lordkeremello45/deneyap-osmaniye-ARES" target="_blank" rel="noopener noreferrer">Açık kaynak proje <span aria-hidden="true">↗</span></a>
+          </div>
+          <div class="hero-note">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 21 7v5c0 5-3.8 8-9 9-5.2-1-9-4-9-9V7l9-4Z" stroke="currentColor" stroke-width="1.7"/><path d="m8 12 2.5 2.5L16 9" stroke="currentColor" stroke-width="1.7"/></svg>
+            <span>Önce güvenlik, ölçülebilir kanıt ve kontrollü test. ARES şu anda araştırma ve prototipleme aşamasındadır.</span>
+          </div>
+        </div>
+        <div class="visual" role="img" aria-label="ARES için kavramsal arama dronu ve sensör tarama grafiği; canlı telemetri değildir.">
+          <div class="grid-lines"></div><div class="crosshair"></div><div class="scan"></div>
+          <div class="drone" aria-hidden="true">
+            <svg viewBox="0 0 220 150" fill="none">
+              <g stroke="#d6e2e2" stroke-width="7" stroke-linecap="round"><path d="M84 70 42 42M136 70l42-28M83 83 42 111M137 83l41 28"/></g>
+              <g stroke="#ff6b3d" stroke-width="4" fill="#172630"><ellipse cx="36" cy="36" rx="29" ry="8" transform="rotate(-23 36 36)"/><ellipse cx="184" cy="36" rx="29" ry="8" transform="rotate(23 184 36)"/><ellipse cx="36" cy="117" rx="29" ry="8" transform="rotate(23 36 117)"/><ellipse cx="184" cy="117" rx="29" ry="8" transform="rotate(-23 184 117)"/></g>
+              <path d="M80 62Q110 47 140 62L151 89Q110 112 69 89L80 62Z" fill="#dbe7e7" stroke="#81969b" stroke-width="2"/>
+              <rect x="96" y="68" width="28" height="25" rx="6" fill="#ff6b3d"/><circle cx="110" cy="79" r="6" fill="#101a23"/><path d="M110 93v17" stroke="#a8bdc0" stroke-width="4" stroke-linecap="round"/><rect x="101" y="107" width="18" height="14" rx="4" fill="#65d9c4"/><circle cx="110" cy="114" r="3" fill="#102027"/>
+            </svg>
+          </div>
+          <div class="hud top"><span><i class="signal"></i>SİSTEM DURUMU</span><strong>Prototip geliştirme</strong><span>Canlı uçuş verisi değil</span></div>
+          <div class="hud left"><span>SENSÖR FÜZYONU</span><strong>Çoklu veri yaklaşımı</strong><span>Doğrulama aşamasında</span></div>
+          <div class="hud bottom"><span>ARES / 01</span><strong>İnsan hayatı öncelikli</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap stats" aria-label="Proje yaklaşımının özeti">
+      <div class="stat"><strong>Çoklu sensör</strong><span>Birbirinden bağımsız kanıt kaynakları</span></div>
+      <div class="stat"><strong>İki kartlı mimari</strong><span>Edinim ve ağ geçidini ayırma hedefi</span></div>
+      <div class="stat"><strong>Yerel kayıt</strong><span>Zaman damgalı ölçüm ve izlenebilirlik</span></div>
+      <div class="stat"><strong>İnsan denetimi</strong><span>Operatör destekli karar süreci</span></div>
+    </div>
+
+    <section class="section" id="amac">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">01 / Misyon</span>
+          <h2>Arama ekiplerine daha anlamlı veri sağlamak.</h2>
+          <p>Enkaz ortamında tek bir sensör kesin sonuç vermez. ARES'in hedefi, farklı fiziksel ölçümleri zaman damgaları ve kalite bilgileriyle birlikte toplayıp uzman ekiplerin değerlendirebileceği bir görünüm oluşturmaktır.</p>
+        </div>
+        <div class="cards">
+          <article class="card">
+            <div class="icon" aria-hidden="true"><svg width="25" height="25" viewBox="0 0 24 24" fill="none"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1m-8.6 8.6-2.1 2.1" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg></div>
+            <h3>İnsan varlığına dair işaretler</h3><p>Termal, akustik ve titreşim verilerini birbirini tamamlayan işaretler olarak değerlendirmek; hiçbir tekil ölçümü doğrulanmış tespit saymamak.</p>
+          </article>
+          <article class="card">
+            <div class="icon" aria-hidden="true"><svg width="25" height="25" viewBox="0 0 24 24" fill="none"><path d="M4 19V5m0 14h16M7 15l3-4 3 2 4-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="17" cy="6" r="2" stroke="currentColor" stroke-width="1.7"/></svg></div>
+            <h3>İzlenebilir ölçümler</h3><p>Zaman damgası, sensör durumu ve hata bilgisini koruyarak veriyi kaydetmek; sonuçların sonradan analiz ve testlerle incelenmesini kolaylaştırmak.</p>
+          </article>
+          <article class="card">
+            <div class="icon" aria-hidden="true"><svg width="25" height="25" viewBox="0 0 24 24" fill="none"><path d="M12 3 20 6v6c0 4.4-3 7.3-8 9-5-1.7-8-4.6-8-9V6l8-3Z" stroke="currentColor" stroke-width="1.7"/><path d="m8 12 2.5 2.5L16 9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <h3>Güvenli operasyon ilkeleri</h3><p>İnsan denetimi, kontrollü testler, elektriksel ve mekanik doğrulama ile profesyonel arama-kurtarma ekiplerinin prosedürlerine saygı.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="teknoloji">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">02 / Algılama katmanı</span>
+          <h2>Farklı sensörler, farklı kanıt türleri.</h2>
+          <p>ARES donanım listesi farklı algılama yöntemlerini bir araya getirir. Sensörlerin entegrasyonu, kalibrasyonu ve gerçek enkaz koşullarındaki performansı ayrı ayrı doğrulanmalıdır.</p>
+        </div>
+        <div class="cards">
+          <article class="card"><div class="icon" aria-hidden="true">◉</div><h3>Termal görüntüleme</h3><p><strong>FLIR Lepton 3.5</strong><br>Termal görüntü verisi; çevre sıcaklığı, örtülme, mesafe ve sensör kalibrasyonu dikkate alınarak analiz edilecek.</p></article>
+          <article class="card"><div class="icon" aria-hidden="true">≋</div><h3>Akustik analiz</h3><p><strong>XMOS XVF3800 + 4 mikrofon</strong><br>Akustik özelliklerin ve ses düzeyi özetlerinin toplanması. Ham ses yerine kontrollü, mahremiyet odaklı işleme hedefi.</p></article>
+          <article class="card"><div class="icon" aria-hidden="true">⌁</div><h3>Sismik / titreşim</h3><p><strong>Geospace GS-One LF</strong><br>Yapı kaynaklı titreşimleri değerlendirmek için uygun analog ön uç, örnekleme ve gürültü karakterizasyonu gereklidir.</p></article>
+          <article class="card"><div class="icon" aria-hidden="true">⌖</div><h3>Mesafe ve konum</h3><p><strong>Garmin LIDAR-Lite v3 · Qorvo DWM3000</strong><br>Mesafe ölçümü ve UWB tabanlı konumlama hedefi. UWB için ikinci uyumlu düğüm ve kalibrasyon testleri gerekir.</p></article>
+          <article class="card"><div class="icon" aria-hidden="true">▦</div><h3>Veri toplama</h3><p><strong>2× DENEYAP Kart V2 · 32 GB SD</strong><br>Sensör edinimi, durum kontrolü, zaman damgası ve yerel kayıt için ayrılmış gömülü sistem mimarisi.</p></article>
+          <article class="card"><div class="icon" aria-hidden="true">⌘</div><h3>Güç ve mekanik</h3><p><strong>Regüle elektronik besleme ve kompozit gövde</strong><br>Motor gücü ile hassas elektroniğin ayrılması, titreşim kontrolü, ısıl yönetim ve anten çevresinde uygun yerleşim.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="mimari">
+      <div class="wrap architecture">
+        <div class="architecture-copy">
+          <span class="eyebrow">03 / Sistem mimarisi</span>
+          <h2>Ölçümden operatör ekranına.</h2>
+          <p>Yazılım mimarisi sensör edinimini, veri doğrulamasını ve kullanıcı arayüzünü birbirinden ayırmayı hedefler. Her katman test edilebilir olmalı; bağlantı kaybı sensör verisinin geçerli olduğu varsayımına dönüşmemelidir.</p>
+          <a class="button secondary" href="https://github.com/lordkeremello45/deneyap-osmaniye-ARES/tree/main/docs" target="_blank" rel="noopener noreferrer">Teknik dokümantasyon <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="stack" aria-label="Hedef veri akışı">
+          <div class="stack-item"><div class="n">01</div><div><strong>Sensörler ve DENEYAP Kart 2</strong><span>Örnekleme · durum bayrakları · zaman damgası · SD kayıt</span></div></div>
+          <div class="stack-arrow" aria-hidden="true"></div>
+          <div class="stack-item"><div class="n">02</div><div><strong>DENEYAP Kart 1 ağ geçidi</strong><span>Çerçeve doğrulama · Wi-Fi · yapılandırıldığında TLS/MQTT telemetrisi</span></div></div>
+          <div class="stack-arrow" aria-hidden="true"></div>
+          <div class="stack-item"><div class="n">03</div><div><strong>Yer istasyonu ve veri füzyonu</strong><span>Yerel API · kayıt inceleme · kalite kontrolleri · analiz</span></div></div>
+          <div class="stack-arrow" aria-hidden="true"></div>
+          <div class="stack-item"><div class="n">04</div><div><strong>Operatör değerlendirmesi</strong><span>Durum görünümü ve karar desteği; nihai karar yetkili ekibindir</span></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="guvenlik">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">04 / Güvenlik ve doğrulama</span>
+          <h2>Güven, iddialarla değil testlerle kurulur.</h2>
+          <p>ARES bir araştırma prototipidir. Aşağıdaki ilkeler geliştirme ve doğrulama planını yönlendirir; operasyonel yeterlilik veya sertifikasyon iddiası değildir.</p>
+        </div>
+        <div class="safety">
+          <article class="safety-card"><h3>Teknik doğrulama</h3><ul><li>Her sensör için referans ölçüm ve kalibrasyon.</li><li>Veri bütünlüğü, zaman damgası ve hata durumlarının testi.</li><li>Güç, EMI, titreşim, ısıl davranış ve bağlantı kaybı testleri.</li><li>Kontrollü senaryolarda yanlış pozitif/negatif ölçümü.</li></ul></article>
+          <article class="safety-card"><h3>Operasyonel sınırlar</h3><ul><li>İnsan tespiti yalnızca sensör verisiyle kesinleştirilmez.</li><li>Yetkili arama-kurtarma ekiplerinin prosedürleri önceliklidir.</li><li>Uçuş emniyeti, doğrulanmış uçuş kontrolcüsü ve failsafe gerektirir.</li><li>Prototip, sertifikalı sistemlerin yerine kullanılamaz.</li></ul></article>
+        </div>
+        <div class="status"><div class="mark" aria-hidden="true">!</div><div><strong>Güncel durum: Araştırma ve prototipleme</strong><p>Donanım entegrasyonu, sensör kalibrasyonu, güvenlik kontrolleri ve kontrollü testler devam ediyor. Web sitesindeki görsel arayüz canlı uçuş telemetrisi sunmaz; doğrulanmış kişi tespit başarımı iddia edilmemektedir.</p></div></div>
+      </div>
+    </section>
+
+    <section class="section" id="iletisim">
+      <div class="wrap">
+        <div class="contact">
+          <div><span class="eyebrow">05 / İş birliği</span><h2>Bilimsel değerlendirme ve<br>teknik iş birliğine açığız.</h2><p>ARES'in donanım mimarisini, yazılımını ve test planını incelemek için açık kaynak depomuzu ziyaret edebilirsiniz. Kurumsal görüşmeler için proje ekibinin doğrulanmış iletişim bilgileri eklendiğinde bu bölüm güncellenecektir.</p></div>
+          <div class="contact-actions">
+            <a class="button" href="https://github.com/lordkeremello45/deneyap-osmaniye-ARES" target="_blank" rel="noopener noreferrer">Projeyi incele <span aria-hidden="true">↗</span></a>
+            <a class="button secondary" href="https://github.com/lordkeremello45/deneyap-osmaniye-ARES/issues" target="_blank" rel="noopener noreferrer">Soru veya öneri ilet</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer>
+    <div class="wrap footer-row">
+      <div><strong>ARES · Deneyap Osmaniye</strong><br>Enkaz arama-kurtarma teknolojileri için araştırma prototipi.</div>
+      <div class="footer-links"><a href="https://github.com/lordkeremello45/deneyap-osmaniye-ARES" target="_blank" rel="noopener noreferrer">GitHub</a><a href="https://github.com/lordkeremello45/deneyap-osmaniye-ARES/blob/main/LICENSE-AGPL-3.0" target="_blank" rel="noopener noreferrer">AGPL-3.0</a><a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer">Lisans metni</a></div>
+    </div>
+    <div class="wrap" style="margin-top:20px">© ARES / Deneyap Osmaniye. Kaynak kodu ve proje durumu için GitHub deposunu ziyaret edin. Site görselleri kavramsaldır; canlı sensör verisi göstermez.</div>
+  </footer>
 </body>
 </html>
