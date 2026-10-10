@@ -1,6 +1,6 @@
 # ARES — Deneyap Osmaniye
 
-Drone destekli enkaz arama/kurtarma araştırma ve prototip sistemi.
+ARES, çökmüş yapıların altında mahsur kalmış kişilerin aranmasını desteklemek için termal, akustik, titreşim ve mesafe sensörlerini birleştirmeyi hedefleyen UAV araştırma ve prototip projesidir. Sistem geliştirme aşamasındadır; gerçek tespit başarımı ve uçuşa hazır olma durumu testlerle doğrulanmalıdır.
 
 ## Mevcut geliştirme önceliği
 
@@ -25,6 +25,16 @@ Windows Ground Station hedefi; Mosquitto yoksa açık/onaylı kurulum akışıyl
 
 **SPARK bir anahtar kasası değildir.** SPARK bazı komut/mission state kurallarının biçimsel tanımlanmasına yardımcı olabilir; anahtarların gizliliği doğrulanmış kriptografi ve işletim sistemi/platform güvenli depolamasıyla sağlanır. Deneyap kartındaki güvenli provisioning ve flash koruması doğrulanmadan fiziksel anahtar koruması iddia edilmez.
 
+## Dosya bütünlüğü (SHA)
+
+`tools/checksums.py`, dosyalar için SHA-256, SHA-512 ve SHA3-512 özetleri üretir. Bunlar **kriptografik hash değerleridir; gizli anahtar değildir**. Örnek kullanım:
+
+```sh
+python tools/checksums.py path/to/file
+```
+
+Özetler dosya bütünlüğünü karşılaştırmaya yardımcı olur; kaynağı doğrulamak için beklenen özetin güvenilir, bağımsız bir kanaldan alınması gerekir.
+
 ## Gemma'nın rolü ve donanım sınırı
 
 Seçilen model Gemma 4 E2B Instruct Q5_K_M GGUF'tur. Yaklaşık 3,66 GB model dosyası ve çıkarım belleği nedeniyle Deneyap Kart V2/ESP32 üzerinde çalıştırılmak üzere seçilmemiştir. Yeterli RAM/işlem gücüne sahip companion host ve gerçek inference benchmark'ı gerekir. Model, doğrulanmış sensör özelliklerini ve kalite bayraklarını yorumlayan yardımcı katmandır; ham veri kayıtlarının ve deterministik kontrollerin yerini almaz.
@@ -41,6 +51,7 @@ Gemma; uçuş stabilizasyonu, motor PWM veya donanımsal failsafe kontrol etmez.
 - `docs/ada-spark/` — ayrı Ada/SPARK doğrulama çalışması.
 - `docs/security/mqtt-pairing.md` — hedef pairing, credential lifecycle, Mosquitto ve güvenlik gereksinimleri.
 - `site/` — GitHub Pages tanıtım sitesi.
+- `tools/checksums.py` — SHA-256, SHA-512 ve SHA3-512 dosya özeti aracı.
 
 ## Sensör ve donanım sınırları
 
@@ -79,8 +90,6 @@ ARES prototiptir. Sensör sonuçları operatör destek verisidir ve gerçek aram
 - [Changelog](CHANGELOG.md) — notable project changes.
 - [Source bibliography](source.md) — consolidated hardware/materials inventory, official datasheets, software dependencies, and open verification items.
 - [GitHub contributors graph](https://github.com/lordkeremello45/deneyap-osmaniye-ARES/graphs/contributors) — contributions recorded by GitHub.
-
-
 
 ## Engineering status
 
