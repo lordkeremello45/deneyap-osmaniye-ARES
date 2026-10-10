@@ -7,7 +7,9 @@
 #if __has_include("ares_board_config.h")
 #include "ares_board_config.h"
 #endif
-#if __has_include("ares_secrets.h")
+#if defined(ARES_MQTT_TEST_CONFIG)
+#include "ares_mqtt_test_config.h"
+#elif __has_include("ares_secrets.h")
 #include "ares_secrets.h"
 #endif
 
