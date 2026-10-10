@@ -9,6 +9,7 @@ package main
 
 import (
 	"context"
+	"crypto/subtle"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -16,7 +17,6 @@ import (
 	"log"
 	"math"
 	"net"
-	"crypto/subtle"
 	"net/http"
 	"os"
 	"os/signal"
@@ -62,11 +62,9 @@ func bridgeAddress() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("invalid ARES_BRIDGE_ADDR %q: %w", addr, err)
 	}
-	if host != "localhost" {
-		ip := net.ParseIP(host)
-		if ip == nil || !ip.IsLoopback() {
-			return "", fmt.Errorf("ARES bridge is an unauthenticated prototype and may bind only to loopback, got %q", host)
-		}
+	ip := net.ParseIP(host)
+	if ip == nil || !ip.IsLoopback() {
+		return "", fmt.Errorf("ARES bridge may bind only to a numeric loopback IP, got %q", host)
 	}
 	return addr, nil
 }
@@ -103,13 +101,13 @@ func requireBridgeToken(next http.HandlerFunc) http.HandlerFunc {
 }
 
 func receiveAudioRMS(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get("Content-Type") != "application/json" {
-		writeJSON(w, http.StatusUnsupportedMediaType, map[string]string{"status": "content_type_must_be_application_json"})
-		return
-	}
 	if r.Method != http.MethodPost {
 		w.Header().Set("Allow", http.MethodPost)
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"status": "method_not_allowed"})
+		return
+	}
+	if r.Header.Get("Content-Type") != "application/json" {
+		writeJSON(w, http.StatusUnsupportedMediaType, map[string]string{"status": "content_type_must_be_application_json"})
 		return
 	}
 	r.Body = http.MaxBytesReader(w, r.Body, 4096)
