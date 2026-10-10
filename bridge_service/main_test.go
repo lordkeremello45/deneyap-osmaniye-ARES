@@ -88,8 +88,8 @@ func TestAudioRMSRequiresFreshXVF3800Sample(t *testing.T) {
 	}
 
 	sample := map[string]any{
-		"source": "xvf3800_uac2",
-		"captured_at": time.Now().UTC().Format(time.RFC3339Nano),
+		"source":         "xvf3800_uac2",
+		"captured_at":    time.Now().UTC().Format(time.RFC3339Nano),
 		"sample_rate_hz": 16000,
 		"channels": 2,
 		"rms": 0.12,
@@ -115,8 +115,8 @@ func TestAudioRMSRequiresFreshXVF3800Sample(t *testing.T) {
 func TestAudioRMSRejectsInvalidSamples(t *testing.T) {
 	t.Setenv("ARES_BRIDGE_TOKEN", "test-token-that-is-at-least-32-chars")
 	sample := map[string]any{
-		"source": "xvf3800_uac2",
-		"captured_at": time.Now().UTC().Format(time.RFC3339Nano),
+		"source":         "xvf3800_uac2",
+		"captured_at":    time.Now().UTC().Format(time.RFC3339Nano),
 		"sample_rate_hz": 16000,
 		"channels": 2,
 		"rms": 0.8,
