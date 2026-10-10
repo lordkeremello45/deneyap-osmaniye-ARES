@@ -41,7 +41,7 @@ class _DashboardState extends State<Dashboard> {
             !(uri.scheme == 'http' &&
                 (uri.host == '127.0.0.1' ||
                     uri.host == 'localhost' ||
-                    uri.host == '10.0.2.2'))) {
+                    uri.host == '10.0.2.2')))) {
       setState(() {
         telemetry = const {
           'status': 'Geçersiz adres; uzaktan bağlantı için HTTPS gerekli',
