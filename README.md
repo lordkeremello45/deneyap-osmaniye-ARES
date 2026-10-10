@@ -33,10 +33,10 @@ Gemma; uçuş stabilizasyonu, motor PWM veya donanımsal failsafe kontrol etmez.
 
 ## Yazılım alanları
 
-- `firmware/` — Deneyap Kart V2 / ESP32 sensör edinimi ve veri protokolü.
+- `firmware/` — Deneyap Kart V2 / ESP32 firmware; current code is a sensor-acquisition scaffold, not yet the completed two-board runtime.
 - `ai_core/` — companion host üzerinde C++ analiz; Gemma adapter'ı tamamlanmış kabul edilmez.
 - `models/` — model metadata ve yerel model yolu; ağırlık dosyası Git'e eklenmez.
-- `bridge_service/` — Go servis/API başlangıç iskeleti; şu anda tam telemetry/pairing servisi değildir.
+- `bridge_service/` — Go service/API scaffold. Data APIs now require a local bearer token; full serial telemetry, pairing and MQTT provisioning remain unimplemented.
 - `mobile_app/` — planlanan Flutter Android/iOS operatör uygulaması.
 - `docs/ada-spark/` — ayrı Ada/SPARK doğrulama çalışması.
 - `docs/security/mqtt-pairing.md` — hedef pairing, credential lifecycle, Mosquitto ve güvenlik gereksinimleri.
