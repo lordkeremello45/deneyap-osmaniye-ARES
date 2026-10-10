@@ -29,7 +29,8 @@ func TestHealthReturnsOK(t *testing.T) {
 }
 
 func TestTelemetryDoesNotPretendDeviceIsConnected(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/telemetry", nil)
+	t.Setenv("ARES_BRIDGE_TOKEN", "test-token-that-is-at-least-32-chars")
+	req := authorizedRequest(http.MethodGet, "/api/v1/telemetry", nil)
 	rec := httptest.NewRecorder()
 	newHandler().ServeHTTP(rec, req)
 	if rec.Code != http.StatusServiceUnavailable {
@@ -45,7 +46,8 @@ func TestTelemetryDoesNotPretendDeviceIsConnected(t *testing.T) {
 }
 
 func TestTelemetryRejectsNonGetMethod(t *testing.T) {
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/telemetry", nil)
+	t.Setenv("ARES_BRIDGE_TOKEN", "test-token-that-is-at-least-32-chars")
+	req := authorizedRequest(http.MethodPost, "/api/v1/telemetry", nil)
 	rec := httptest.NewRecorder()
 	newHandler().ServeHTTP(rec, req)
 	if rec.Code != http.StatusMethodNotAllowed {
@@ -65,6 +67,10 @@ func TestBridgeAddressIsLoopbackOnly(t *testing.T) {
 	t.Setenv("ARES_BRIDGE_ADDR", "0.0.0.0:8080")
 	if _, err := bridgeAddress(); err == nil {
 		t.Fatal("expected non-loopback bind to be rejected")
+	}
+	t.Setenv("ARES_BRIDGE_ADDR", "localhost:8080")
+	if _, err := bridgeAddress(); err == nil {
+		t.Fatal("expected hostname bind to be rejected; use a numeric loopback IP")
 	}
 }
 
@@ -101,7 +107,7 @@ func TestAudioRMSRequiresFreshXVF3800Sample(t *testing.T) {
 	}
 
 	get = httptest.NewRecorder()
-	newHandler().ServeHTTP(get, httptest.NewRequest(http.MethodGet, "/api/v1/audio", nil))
+	newHandler().ServeHTTP(get, authorizedRequest(http.MethodGet, "/api/v1/audio", nil))
 	if get.Code != http.StatusOK {
 		t.Fatalf("expected fresh sample, got %d: %s", get.Code, get.Body.String())
 	}
@@ -122,7 +128,7 @@ func TestAudioRMSRejectsInvalidSamples(t *testing.T) {
 		t.Fatal(err)
 	}
 	response := httptest.NewRecorder()
-	newHandler().ServeHTTP(response, httptest.NewRequest(http.MethodPost, "/api/v1/audio/rms", bytes.NewReader(body)))
+	newHandler().ServeHTTP(response, authorizedRequest(http.MethodPost, "/api/v1/audio/rms", body))
 	if response.Code != http.StatusUnprocessableEntity {
 		t.Fatalf("expected invalid sample rejection, got %d", response.Code)
 	}
