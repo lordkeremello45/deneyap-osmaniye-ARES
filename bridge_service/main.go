@@ -168,13 +168,13 @@ func readAudioRMS(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{
 		"status": "ok",
 		"data": map[string]any{
-			"source": sample.Source,
-			"captured_at": sample.CapturedAt,
+			"source":         sample.Source,
+			"captured_at":    sample.CapturedAt,
 			"sample_rate_hz": sample.SampleRateHz,
-			"channels": sample.Channels,
-			"rms": sample.RMS,
-			"peak": sample.Peak,
-			"age_ms": time.Since(sample.ReceivedAt).Milliseconds(),
+			"channels":       sample.Channels,
+			"rms":            sample.RMS,
+			"peak":           sample.Peak,
+			"age_ms":         time.Since(sample.ReceivedAt).Milliseconds(),
 		},
 	})
 }
@@ -199,7 +199,7 @@ func newHandler() http.Handler {
 		// is exposed separately and must not be mistaken for complete telemetry.
 		writeJSON(w, http.StatusServiceUnavailable, TelemetryResponse{
 			Version: 1, Source: "ares", Status: "waiting_for_device",
-			Data: json.RawMessage("null"),
+			Data:    json.RawMessage("null"),
 			Message: "Full telemetry source is not connected; values are unavailable.",
 		})
 	}))
@@ -220,9 +220,9 @@ func main() {
 	server := &http.Server{
 		Addr: addr, Handler: newHandler(),
 		ReadHeaderTimeout: 5 * time.Second,
-		ReadTimeout: 10 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		IdleTimeout: 60 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      10 * time.Second,
+		IdleTimeout:       60 * time.Second,
 	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
