@@ -16,6 +16,7 @@ import (
 	"log"
 	"math"
 	"net"
+	"crypto/subtle"
 	"net/http"
 	"os"
 	"os/signal"
@@ -80,7 +81,32 @@ func writeJSON(w http.ResponseWriter, status int, value any) {
 	}
 }
 
+func bridgeToken() string { return os.Getenv("ARES_BRIDGE_TOKEN") }
+
+func tokenConfigured() bool {
+	return len(bridgeToken()) >= 32
+}
+
+func requireBridgeToken(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		expected := bridgeToken()
+		provided := r.Header.Get("Authorization")
+		const prefix = "Bearer "
+		if len(expected) < 32 || len(provided) < len(prefix) ||
+			provided[:len(prefix)] != prefix ||
+			subtle.ConstantTimeCompare([]byte(provided[len(prefix):]), []byte(expected)) != 1 {
+			writeJSON(w, http.StatusUnauthorized, map[string]string{"status": "unauthorized"})
+			return
+		}
+		next(w, r)
+	}
+}
+
 func receiveAudioRMS(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get("Content-Type") != "application/json" {
+		writeJSON(w, http.StatusUnsupportedMediaType, map[string]string{"status": "content_type_must_be_application_json"})
+		return
+	}
 	if r.Method != http.MethodPost {
 		w.Header().Set("Allow", http.MethodPost)
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"status": "method_not_allowed"})
@@ -165,7 +191,7 @@ func newHandler() http.Handler {
 		}
 		writeJSON(w, http.StatusOK, Health{Status: "ok"})
 	})
-	mux.HandleFunc("/api/v1/telemetry", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/api/v1/telemetry", requireBridgeToken(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			w.Header().Set("Allow", http.MethodGet)
 			writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"status": "method_not_allowed"})
@@ -178,13 +204,16 @@ func newHandler() http.Handler {
 			Data: json.RawMessage("null"),
 			Message: "Full telemetry source is not connected; values are unavailable.",
 		})
-	})
-	mux.HandleFunc("/api/v1/audio/rms", receiveAudioRMS)
-	mux.HandleFunc("/api/v1/audio", readAudioRMS)
+	}))
+	mux.HandleFunc("/api/v1/audio/rms", requireBridgeToken(receiveAudioRMS))
+	mux.HandleFunc("/api/v1/audio", requireBridgeToken(readAudioRMS))
 	return mux
 }
 
 func main() {
+	if !tokenConfigured() {
+		log.Fatal("ARES_BRIDGE_TOKEN must be set to a randomly generated secret of at least 32 characters")
+	}
 	addr, err := bridgeAddress()
 	if err != nil {
 		log.Fatal(err)
