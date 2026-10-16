@@ -86,7 +86,7 @@ func TestAudioRMSRequiresFreshXVF3800Sample(t *testing.T) {
 		"sample_rate_hz": 16000,
 		"channels":       2,
 		"rms":            0.12,
-		"peak":            0.31,
+		"peak":           0.31,
 	}
 	body, err := json.Marshal(sample)
 	if err != nil {
@@ -181,7 +181,7 @@ func TestAudioRMSRejectsUnknownFields(t *testing.T) {
 		"sample_rate_hz": 16000,
 		"channels":       2,
 		"rms":            0.12,
-		"peak":            0.31,
+		"peak":           0.31,
 		"unexpected":     true,
 	}
 	body, err := json.Marshal(sample)
