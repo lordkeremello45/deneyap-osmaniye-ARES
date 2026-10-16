@@ -84,5 +84,6 @@ ARES prototiptir. Sensör sonuçları operatör destek verisidir ve gerçek aram
 
 ## Engineering status
 
+- [HWcontrol2.0 reference and ARES adoption plan](docs/software/hwcontrol2-reference.md)
 - [Hardware review report](docs/hardware/review-report-for-teacher.md)
 - [Software status and integration gates](docs/software/status.md)
