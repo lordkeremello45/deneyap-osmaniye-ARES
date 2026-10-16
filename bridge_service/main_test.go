@@ -68,7 +68,6 @@ func TestBridgeAddressIsLoopbackOnly(t *testing.T) {
 	}
 }
 
-
 func TestAudioRMSRequiresFreshXVF3800Sample(t *testing.T) {
 	audioState.Lock()
 	audioState.latest = AudioRMS{}
@@ -82,12 +81,12 @@ func TestAudioRMSRequiresFreshXVF3800Sample(t *testing.T) {
 	}
 
 	sample := map[string]any{
-		"source": "xvf3800_uac2",
-		"captured_at": time.Now().UTC().Format(time.RFC3339Nano),
+		"source":         "xvf3800_uac2",
+		"captured_at":    time.Now().UTC().Format(time.RFC3339Nano),
 		"sample_rate_hz": 16000,
-		"channels": 2,
-		"rms": 0.12,
-		"peak": 0.31,
+		"channels":       2,
+		"rms":            0.12,
+		"peak":            0.31,
 	}
 	body, err := json.Marshal(sample)
 	if err != nil {
@@ -108,12 +107,12 @@ func TestAudioRMSRequiresFreshXVF3800Sample(t *testing.T) {
 
 func TestAudioRMSRejectsInvalidSamples(t *testing.T) {
 	sample := map[string]any{
-		"source": "xvf3800_uac2",
-		"captured_at": time.Now().UTC().Format(time.RFC3339Nano),
+		"source":         "xvf3800_uac2",
+		"captured_at":    time.Now().UTC().Format(time.RFC3339Nano),
 		"sample_rate_hz": 16000,
-		"channels": 2,
-		"rms": 0.8,
-		"peak": 0.2,
+		"channels":       2,
+		"rms":            0.8,
+		"peak":           0.2,
 	}
 	body, err := json.Marshal(sample)
 	if err != nil {
@@ -125,7 +124,6 @@ func TestAudioRMSRejectsInvalidSamples(t *testing.T) {
 		t.Fatalf("expected invalid sample rejection, got %d", response.Code)
 	}
 }
-
 
 func TestStatusDistinguishesUnavailableTelemetryAndAudio(t *testing.T) {
 	audioState.Lock()
@@ -178,13 +176,13 @@ func TestAudioRMSReportsStaleDataSeparately(t *testing.T) {
 
 func TestAudioRMSRejectsUnknownFields(t *testing.T) {
 	sample := map[string]any{
-		"source": "xvf3800_uac2",
-		"captured_at": time.Now().UTC().Format(time.RFC3339Nano),
+		"source":         "xvf3800_uac2",
+		"captured_at":    time.Now().UTC().Format(time.RFC3339Nano),
 		"sample_rate_hz": 16000,
-		"channels": 2,
-		"rms": 0.12,
-		"peak": 0.31,
-		"unexpected": true,
+		"channels":       2,
+		"rms":            0.12,
+		"peak":            0.31,
+		"unexpected":     true,
 	}
 	body, err := json.Marshal(sample)
 	if err != nil {
