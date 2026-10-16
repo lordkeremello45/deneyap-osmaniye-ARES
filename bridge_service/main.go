@@ -48,7 +48,7 @@ type AudioRMS struct {
 
 var audioState struct {
 	sync.RWMutex
-	latest AudioRMS
+	latest  AudioRMS
 	hasData bool
 }
 
@@ -132,25 +132,34 @@ func readAudioRMS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	audioState.RLock()
-	sample, ok := audioState.latest, audioState.hasData
+	sample, hasData := audioState.latest, audioState.hasData
 	audioState.RUnlock()
-	if !ok || time.Since(sample.ReceivedAt) > 3*time.Second {
+	if !hasData {
 		writeJSON(w, http.StatusServiceUnavailable, map[string]any{
 			"status": "waiting_for_xvf3800",
 			"data":   nil,
 		})
 		return
 	}
+	age := time.Since(sample.ReceivedAt)
+	if age > 3*time.Second {
+		writeJSON(w, http.StatusServiceUnavailable, map[string]any{
+			"status": "stale",
+			"data":   nil,
+			"age_ms": age.Milliseconds(),
+		})
+		return
+	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"status": "ok",
 		"data": map[string]any{
-			"source": sample.Source,
-			"captured_at": sample.CapturedAt,
+			"source":         sample.Source,
+			"captured_at":    sample.CapturedAt,
 			"sample_rate_hz": sample.SampleRateHz,
-			"channels": sample.Channels,
-			"rms": sample.RMS,
-			"peak": sample.Peak,
-			"age_ms": time.Since(sample.ReceivedAt).Milliseconds(),
+			"channels":       sample.Channels,
+			"rms":            sample.RMS,
+			"peak":           sample.Peak,
+			"age_ms":         time.Since(sample.ReceivedAt).Milliseconds(),
 		},
 	})
 }
@@ -175,12 +184,47 @@ func newHandler() http.Handler {
 		// is exposed separately and must not be mistaken for complete telemetry.
 		writeJSON(w, http.StatusServiceUnavailable, TelemetryResponse{
 			Version: 1, Source: "ares", Status: "waiting_for_device",
-			Data: json.RawMessage("null"),
+			Data:    json.RawMessage("null"),
 			Message: "Full telemetry source is not connected; values are unavailable.",
 		})
 	})
 	mux.HandleFunc("/api/v1/audio/rms", receiveAudioRMS)
 	mux.HandleFunc("/api/v1/audio", readAudioRMS)
+	mux.HandleFunc("/api/v1/status", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			w.Header().Set("Allow", http.MethodGet)
+			writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"status": "method_not_allowed"})
+			return
+		}
+
+		audioState.RLock()
+		sample, hasAudio := audioState.latest, audioState.hasData
+		audioState.RUnlock()
+
+		audioStatus := "waiting_for_xvf3800"
+		var audioAge any
+		if hasAudio {
+			age := time.Since(sample.ReceivedAt)
+			audioAge = age.Milliseconds()
+			if age <= 3*time.Second {
+				audioStatus = "ok"
+			} else {
+				audioStatus = "stale"
+			}
+		}
+		writeJSON(w, http.StatusOK, map[string]any{
+			"service": "ok",
+			"telemetry": map[string]any{
+				"status":    "waiting_for_device",
+				"available": false,
+			},
+			"audio": map[string]any{
+				"status":    audioStatus,
+				"available": hasAudio && audioStatus == "ok",
+				"age_ms":    audioAge,
+			},
+		})
+	})
 	return mux
 }
 
@@ -191,11 +235,12 @@ func main() {
 	}
 
 	server := &http.Server{
-		Addr: addr, Handler: newHandler(),
+		Addr:              addr,
+		Handler:           newHandler(),
 		ReadHeaderTimeout: 5 * time.Second,
-		ReadTimeout: 10 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		IdleTimeout: 60 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      10 * time.Second,
+		IdleTimeout:       60 * time.Second,
 	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
