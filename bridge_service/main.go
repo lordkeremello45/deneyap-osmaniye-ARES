@@ -9,6 +9,7 @@ package main
 
 import (
 	"context"
+	"crypto/subtle"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -48,7 +49,7 @@ type AudioRMS struct {
 
 var audioState struct {
 	sync.RWMutex
-	latest AudioRMS
+	latest  AudioRMS
 	hasData bool
 }
 
@@ -61,11 +62,9 @@ func bridgeAddress() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("invalid ARES_BRIDGE_ADDR %q: %w", addr, err)
 	}
-	if host != "localhost" {
-		ip := net.ParseIP(host)
-		if ip == nil || !ip.IsLoopback() {
-			return "", fmt.Errorf("ARES bridge is an unauthenticated prototype and may bind only to loopback, got %q", host)
-		}
+	ip := net.ParseIP(host)
+	if ip == nil || !ip.IsLoopback() {
+		return "", fmt.Errorf("ARES bridge may bind only to a numeric loopback IP, got %q", host)
 	}
 	return addr, nil
 }
@@ -80,10 +79,35 @@ func writeJSON(w http.ResponseWriter, status int, value any) {
 	}
 }
 
+func bridgeToken() string { return os.Getenv("ARES_BRIDGE_TOKEN") }
+
+func tokenConfigured() bool {
+	return len(bridgeToken()) >= 32
+}
+
+func requireBridgeToken(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		expected := bridgeToken()
+		provided := r.Header.Get("Authorization")
+		const prefix = "Bearer "
+		if len(expected) < 32 || len(provided) < len(prefix) ||
+			provided[:len(prefix)] != prefix ||
+			subtle.ConstantTimeCompare([]byte(provided[len(prefix):]), []byte(expected)) != 1 {
+			writeJSON(w, http.StatusUnauthorized, map[string]string{"status": "unauthorized"})
+			return
+		}
+		next(w, r)
+	}
+}
+
 func receiveAudioRMS(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.Header().Set("Allow", http.MethodPost)
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"status": "method_not_allowed"})
+		return
+	}
+	if r.Header.Get("Content-Type") != "application/json" {
+		writeJSON(w, http.StatusUnsupportedMediaType, map[string]string{"status": "content_type_must_be_application_json"})
 		return
 	}
 	r.Body = http.MaxBytesReader(w, r.Body, 4096)
@@ -144,13 +168,13 @@ func readAudioRMS(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{
 		"status": "ok",
 		"data": map[string]any{
-			"source": sample.Source,
-			"captured_at": sample.CapturedAt,
+			"source":         sample.Source,
+			"captured_at":    sample.CapturedAt,
 			"sample_rate_hz": sample.SampleRateHz,
-			"channels": sample.Channels,
-			"rms": sample.RMS,
-			"peak": sample.Peak,
-			"age_ms": time.Since(sample.ReceivedAt).Milliseconds(),
+			"channels":       sample.Channels,
+			"rms":            sample.RMS,
+			"peak":           sample.Peak,
+			"age_ms":         time.Since(sample.ReceivedAt).Milliseconds(),
 		},
 	})
 }
@@ -165,7 +189,7 @@ func newHandler() http.Handler {
 		}
 		writeJSON(w, http.StatusOK, Health{Status: "ok"})
 	})
-	mux.HandleFunc("/api/v1/telemetry", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/api/v1/telemetry", requireBridgeToken(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			w.Header().Set("Allow", http.MethodGet)
 			writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"status": "method_not_allowed"})
@@ -175,16 +199,19 @@ func newHandler() http.Handler {
 		// is exposed separately and must not be mistaken for complete telemetry.
 		writeJSON(w, http.StatusServiceUnavailable, TelemetryResponse{
 			Version: 1, Source: "ares", Status: "waiting_for_device",
-			Data: json.RawMessage("null"),
+			Data:    json.RawMessage("null"),
 			Message: "Full telemetry source is not connected; values are unavailable.",
 		})
-	})
-	mux.HandleFunc("/api/v1/audio/rms", receiveAudioRMS)
-	mux.HandleFunc("/api/v1/audio", readAudioRMS)
+	}))
+	mux.HandleFunc("/api/v1/audio/rms", requireBridgeToken(receiveAudioRMS))
+	mux.HandleFunc("/api/v1/audio", requireBridgeToken(readAudioRMS))
 	return mux
 }
 
 func main() {
+	if !tokenConfigured() {
+		log.Fatal("ARES_BRIDGE_TOKEN must be set to a randomly generated secret of at least 32 characters")
+	}
 	addr, err := bridgeAddress()
 	if err != nil {
 		log.Fatal(err)
@@ -193,9 +220,9 @@ func main() {
 	server := &http.Server{
 		Addr: addr, Handler: newHandler(),
 		ReadHeaderTimeout: 5 * time.Second,
-		ReadTimeout: 10 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		IdleTimeout: 60 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      10 * time.Second,
+		IdleTimeout:       60 * time.Second,
 	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)

@@ -159,6 +159,11 @@ temp/
 *.coverage
 htmlcov/
 
+# --- ARES local hardware configuration and build artifacts ---
+/firmware/include/ares_board_config.h
+/firmware/include/ares_secrets.h
+/firmware/build_artifacts/
+
 # --- Hardware / firmware generated output ---
 *.bin
 *.elf

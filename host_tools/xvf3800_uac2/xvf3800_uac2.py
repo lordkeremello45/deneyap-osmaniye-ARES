@@ -9,12 +9,14 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import ipaddress
 import queue
 import sys
 import time
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone
+from urllib.parse import urlsplit
 
 import numpy as np
 import sounddevice as sd
@@ -54,10 +56,31 @@ def choose_device(selector: str | None):
     return candidates[0]
 
 
-def post_sample(url: str, sample: dict) -> None:
+def validate_bridge_url(raw_url: str) -> str:
+    parsed = urlsplit(raw_url)
+    if parsed.scheme != "http" or parsed.username or parsed.password:
+        raise ValueError("Bridge URL must use plain HTTP only to a numeric loopback IP; external hosts and credentials are forbidden.")
+    if parsed.query or parsed.fragment or parsed.path != "/api/v1/audio/rms":
+        raise ValueError("Bridge URL must target exactly /api/v1/audio/rms without query or fragment.")
+    try:
+        host = ipaddress.ip_address(parsed.hostname or "")
+    except ValueError as exc:
+        raise ValueError("Bridge hostname must be a numeric loopback IP (127.0.0.1 or ::1); DNS names are forbidden.") from exc
+    if not host.is_loopback:
+        raise ValueError("Bridge URL must target a loopback IP; audio metrics must not be sent to external hosts.")
+    try:
+        port = parsed.port
+    except ValueError as exc:
+        raise ValueError("Bridge URL has an invalid port.") from exc
+    if port is None or not (1 <= port <= 65535):
+        raise ValueError("Bridge URL must include a valid explicit port.")
+    return raw_url
+
+
+def post_sample(url: str, sample: dict, token: str) -> None:
     body = json.dumps(sample, separators=(",", ":")).encode("utf-8")
     request = urllib.request.Request(
-        url, data=body, headers={"Content-Type": "application/json"}, method="POST"
+        url, data=body, headers={"Content-Type": "application/json", "Authorization": f"Bearer {token}"}, method="POST"
     )
     with urllib.request.urlopen(request, timeout=2.0) as response:
         if response.status != 202:
@@ -89,6 +112,14 @@ def main() -> int:
         return 2
 
     bridge_url = os.environ.get("ARES_BRIDGE_AUDIO_URL", "http://127.0.0.1:8080/api/v1/audio/rms")
+    bridge_token = os.environ.get("ARES_BRIDGE_TOKEN", "")
+    try:
+        validate_bridge_url(bridge_url)
+        if len(bridge_token) < 32:
+            raise ValueError("ARES_BRIDGE_TOKEN must be a random secret of at least 32 characters.")
+    except ValueError as exc:
+        print(f"Bridge security configuration error: {exc}", file=sys.stderr)
+        return 2
     samples: queue.Queue[dict] = queue.Queue(maxsize=1)
 
     def audio_callback(indata, frames, timing, status):
@@ -135,7 +166,7 @@ def main() -> int:
                     print("No audio callback received within 2 seconds.", file=sys.stderr)
                     continue
                 try:
-                    post_sample(bridge_url, sample)
+                    post_sample(bridge_url, sample, bridge_token)
                 except (urllib.error.URLError, TimeoutError, RuntimeError) as exc:
                     print(f"Bridge upload failed: {exc}", file=sys.stderr)
                 else:
